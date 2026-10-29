@@ -5,11 +5,11 @@
 Line-by-line emission/absorption spectra of high-temperature plasmas
 (air, combustion gases, metal/oxide vapours) for the analysis of meteor,
 space-debris and re-entry emission. **This repository distributes the
-manuals (and, later, the application binaries) only** — the source code is not public.
+manuals only** — the source code is not public.
 
 高温プラズマ（空気・燃焼ガス・金属/酸化物蒸気）の line-by-line 発光・吸収スペクトル
 計算ソフトウェアです。流星・スペースデブリ・再突入カプセルの発光解析に使えます。
-**このリポジトリではマニュアル（および今後公開予定の実行ファイル）のみを配布しています**（ソースコードは非公開）。
+**このリポジトリではマニュアルのみを配布しています**（ソースコードは非公開）。
 
 ## Manual / マニュアル
 
@@ -19,12 +19,6 @@ manuals (and, later, the application binaries) only** — the source code is not
 | English | [Specification and User Manual](manual/en.md) | [METEORAD_Manual_en.pdf](manual/METEORAD_Manual_en.pdf) | [METEORAD_Manual_en.docx](manual/METEORAD_Manual_en.docx) |
 
 Web version / Web 版: https://nu-sx.github.io/METEORAD/
-
-## Download / ダウンロード
-
-The application binaries (Windows installer, macOS dmg) are in preparation and
-will be published under [Releases](https://github.com/nu-sx/METEORAD/releases).
-アプリケーション本体（Windows インストーラ・macOS dmg）は公開準備中です。
 
 ## Credits / クレジット
 
