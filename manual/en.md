@@ -18,6 +18,10 @@
   - [1.3 Verification](#sec-1-3)
   - [1.4 Citation (required)](#sec-1-4)
 - [2. Requirements and installation](#sec-2)
+  - [2.1 Windows](#sec-2-1)
+  - [2.2 macOS](#sec-2-2)
+  - [2.3 Where the databases are stored](#sec-2-3)
+  - [2.4 Uninstalling](#sec-2-4)
 - [3. Start-up and window layout](#sec-3)
 - [4. Species panel](#sec-4)
   - [4.1 Presets](#sec-4-1)
@@ -107,53 +111,88 @@ Fujita and Abe (1997) is the original SPRADIAN theory paper and Fujita and Abe (
 
 ## 2. Requirements and installation
 
-**Table 1.** Requirements
+METEORAD is distributed as a Windows installer and a macOS disk image (dmg). No Python or other additional software is required.
 
-| Item | Requirement |
-|---|---|
-| OS | macOS / Linux / Windows (anywhere Python runs) |
-| Python | 3.9 or later |
-| Computational core | numpy |
-| GUI | matplotlib, PySide6 (Qt 6) |
+**Table 1.** Requirements and distribution files
 
-```text
-pip install numpy matplotlib PySide6
-```
+| Item | Windows | macOS |
+|---|---|---|
+| OS | Windows 10 / 11 (64-bit) | macOS 14.4 or later, Apple Silicon (M1 or later) |
+| File | `METEORAD-<ver>-Windows-x64-Setup.exe`<br>(portable: `METEORAD-<ver>-Windows-x64.zip`) | `METEORAD-<ver>-macOS-arm64.dmg` |
+| Disk space | about 200 MB | about 150 MB |
+| Code signing | none (SmartScreen warning on first run) | none (Gatekeeper check on first run) |
 
-The directory layout is shown below. Both database directories are scanned at start-up.
+<a id="sec-2-1"></a>
 
-```text
-SPRADIAN/
-├── SPRADIAN-1.8/DATAPAC/database/   # original air/combustion .dat files (23 species)
-└── meteorad_py/
-    ├── meteorad/                    # computational core (port of RADIPAC)
-    ├── meteorad_gui/                # PySide6 GUI
-    ├── database_debris/             # debris/metal .dat files (20 species) / VALD target
-    ├── tools/                       # .dat generators and tests
-    ├── notes/                       # port notes, data sources, verification
-    └── run_gui.py                   # GUI launcher
-```
+### 2.1 Windows
 
-> `SPR-*` working files and `*.org` / `*.orig*` backups are excluded from the species list. If `database_debris/` is missing, the Debris/Metal group is simply empty.
+1. Double-click `METEORAD-<ver>-Windows-x64-Setup.exe`.
+2. If "Windows protected your PC" appears, choose **More info** → **Run anyway** (the installer is not code-signed).
+3. Choose the install mode (only for me / all users). Installing for all users requires administrator rights.
+4. Accept the terms of use, choose the destination (default `C:\Program Files\METEORAD`) and whether to create a desktop icon, then click **Install**.
+5. Leave "Launch METEORAD" checked on the last page and click **Finish** to start it.
+
+> To use the portable version, extract the zip anywhere and run `METEORAD\METEORAD.exe`; no installation is needed.
+
+<a id="sec-2-2"></a>
+
+### 2.2 macOS
+
+1. Double-click `METEORAD-<ver>-macOS-arm64.dmg` to open it.
+2. Drag **METEORAD.app** onto the **Applications** folder shown in the same window.
+3. Open METEORAD from the Applications folder (or Launchpad). The first time, macOS reports that it cannot verify the developer; close the dialog with **Done** (or **OK**).
+4. Open **System Settings** → **Privacy & Security**, click **Open Anyway** next to the message that "METEORAD" was blocked, and confirm with **Open** (only needed once).
+5. You can then eject the dmg from the Finder sidebar.
+
+<a id="sec-2-3"></a>
+
+### 2.3 Where the databases are stored
+
+Two databases are scanned at start-up and listed in the species panel.
+
+**Table 2.** Database locations
+
+| Group | Location | Contents |
+|---|---|---|
+| Air/Combustion | inside the application (read-only) | 23 air/combustion species of the original SPRADIAN DATAPAC |
+| Debris/Metal | Windows: `%APPDATA%\METEORAD\database_debris`<br>macOS: `~/Library/Application Support/METEORAD/database_debris` | 20 debris/metal species and any species created by VALD import (Chapter 10) |
+
+> The Debris/Metal folder is created automatically on first start and the bundled databases are copied into it. When the application is updated, files with the same names as the bundled ones are overwritten by the new version (other files are kept); if you replaced a bundled species, e.g. by a VALD import, save it under another name or keep a backup. After changing the folder, use **Tools → Rescan databases** to refresh the list.
+
+<a id="sec-2-4"></a>
+
+### 2.4 Uninstalling
+
+- Windows: in **Settings → Apps → Installed apps**, select METEORAD and choose **Uninstall**.
+- macOS: move METEORAD.app from the Applications folder to the Trash.
+- In both cases the user data (the Debris/Metal folder above and the settings) is kept; delete the `METEORAD` folder if you no longer need it.
 
 <a id="sec-3"></a>
 
 ## 3. Start-up and window layout
 
+- Windows: start **METEORAD** from the Start menu (or the desktop icon).
+- macOS: start **METEORAD** from the Applications folder or Launchpad.
+- SPRADIAN-1.8 control files (.ctl) can be loaded after start-up with **File → Load control file (.ctl)** (Chapter 11).
+
+Started from a command line, METEORAD can open a .ctl file directly or print its version.
+
 ```text
-cd meteorad_py
-python run_gui.py                                              # empty form
-python run_gui.py ../SPRADIAN-1.8/RADIPAC/samples/sample1.ctl  # load a .ctl at start-up
-python run_gui.py --version
+# Windows (PowerShell)
+& "C:\Program Files\METEORAD\METEORAD.exe" sample1.ctl
+
+# macOS (Terminal)
+/Applications/METEORAD.app/Contents/MacOS/METEORAD sample1.ctl
+/Applications/METEORAD.app/Contents/MacOS/METEORAD --version
 ```
 
-If a required package is missing, the launcher prints its name and the pip command. The main window has four areas (Figure 1).
+The main window has four areas (Figure 1).
 
 <p align="center"><img src="images/01_main_empty.png" width="640" alt="Main window right after start-up"></p>
 
 <p align="center"><b>Figure 1.</b> Main window right after start-up</p>
 
-**Table 2.** Main-window areas
+**Table 3.** Main-window areas
 
 | Area | Position | Purpose |
 |---|---|---|
@@ -183,7 +222,7 @@ If a required package is missing, the launcher prints its name and the pip comma
 
 The Preset box sets a representative composition and temperature (the same value for all five temperatures) in one step.
 
-**Table 3.** Presets
+**Table 4.** Presets
 
 | Preset | Temperature | Composition [m⁻³] |
 |---|---|---|
@@ -202,7 +241,7 @@ The Preset box sets a representative composition and temperature (the same value
 
 <p align="center"><b>Figure 3.</b> Parameter panel (multi-temperature mode, slab intensity on)</p>
 
-**Table 4.** Parameters
+**Table 5.** Parameters
 
 | Field | Unit | Description |
 |---|---|---|
@@ -217,7 +256,7 @@ The Preset box sets a representative composition and temperature (the same value
 | Include continua (bf/fb/ff) | — | Include bound-free, free-bound and free-free continua |
 | Run / Cancel | — | Start / stop the calculation (stops at the next species or stage boundary) |
 
-**Table 5.** Five-temperature model
+**Table 6.** Five-temperature model
 
 | Temperature | Meaning | Mainly controls |
 |---|---|---|
@@ -261,7 +300,7 @@ Stark ∝ λ² · Ne,      vdW ∝ λ² · (N₀ / N_ref) · (Ttr / 296 K)^0.3
 
 ### 6.2 Plot-panel controls
 
-**Table 6.** Plot-panel controls
+**Table 7.** Plot-panel controls
 
 | Control | Function |
 |---|---|
@@ -306,7 +345,7 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 
 <p align="center"><b>Figure 8.</b> File menu</p>
 
-**Table 7.** Menu items
+**Table 8.** Menu items
 
 | Menu | Item | Function |
 |---|---|---|
@@ -325,7 +364,7 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 
 With a .csv suffix the file is comma-separated with one header line; otherwise it is space-separated with a `#` header. Numbers use `%.6e`.
 
-**Table 8.** Columns of the spectrum CSV/DAT
+**Table 9.** Columns of the spectrum CSV/DAT
 
 | Column | Unit | Present when |
 |---|---|---|
@@ -380,7 +419,7 @@ File → Fit observed spectrum... opens the fit window. It loads an observed spe
 
 ### 9.1 Settings
 
-**Table 9.** Fit-window settings
+**Table 10.** Fit-window settings
 
 | Group | Item | Description |
 |---|---|---|
@@ -422,7 +461,7 @@ Selecting a row shows that solution. **Apply to main window** copies its tempera
 
 ## 10. Importing VALD line lists
 
-Tools → Import VALD line list... converts a VALD3 long-format extract (https://www.astro.uu.se/valdwiki/) into a SPRADIAN atomic .dat file in `database_debris/`.
+Tools → Import VALD line list... converts a VALD3 long-format extract (https://www.astro.uu.se/valdwiki/) into a SPRADIAN atomic .dat file in the Debris/Metal folder (Section 2.3).
 
 1. Register with VALD and request an Extract Element (long format) for the element/ionisation stage.
 2. Choose the extract (.vald, .txt, .gz) via Import VALD line list....
@@ -444,7 +483,7 @@ Ak [m² Å]   = A_ul · λ_Å⁴ · 1e-30 / (8π c g_l)
 
 File → Load control file (.ctl)... reads a SPRADIAN-1.8 job file and applies wavelength range, interval, line shape, pressure FWHM, temperatures and species densities to the form. Items the form cannot represent are listed in a dialog after loading.
 
-**Table 10.** Limitations of .ctl loading
+**Table 11.** Limitations of .ctl loading
 
 | Control-file setting | GUI handling |
 |---|---|
@@ -478,7 +517,7 @@ res = run_spectrum(
 from meteorad.control import read_control_file   # legacy job files
 ```
 
-**Table 11.** Core modules
+**Table 12.** Core modules
 
 | Module | Content (C counterpart) |
 |---|---|
@@ -500,7 +539,7 @@ from meteorad.control import read_control_file   # legacy job files
 
 ### 13.1 Units and conventions
 
-**Table 12.** Units
+**Table 13.** Units
 
 | Quantity | Unit |
 |---|---|
@@ -543,7 +582,7 @@ Resolution FWHM convolves with a unit-area Gaussian, conserving integrated flux.
 
 ## 14. Databases
 
-**Table 13.** Species in the databases
+**Table 14.** Species in the databases
 
 | Group | Species |
 |---|---|
@@ -561,7 +600,7 @@ Resolution FWHM convolves with a unit-area Gaussian, conserving integrated flux.
 - **FeO orange system**: a dense multi-state problem represented as one upper state (Te = 17050 cm⁻¹, S = 2, Λ = 0) giving the band envelope only; not for rotational-line work.
 - **Franck–Condon factors**: Morse potentials built from (we, wexe, Be) and the reduced mass; vibrational overlaps computed numerically (revised 2026-10-23).
 
-**Table 14.** Morse-oscillator Franck–Condon factors (A_total is the v′=0 total rate 1/τ₀)
+**Table 15.** Morse-oscillator Franck–Condon factors (A_total is the v′=0 total rate 1/τ₀)
 
 | Band system | rₑ′ / rₑ″ (Å) | q00 | q01 | q10 | A_total (s⁻¹) |
 |---|---|---|---|---|---|

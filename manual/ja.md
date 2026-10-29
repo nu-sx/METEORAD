@@ -18,6 +18,10 @@
   - [1.3 検証状況](#sec-1-3)
   - [1.4 引用 (必須)](#sec-1-4)
 - [2. 動作環境とインストール](#sec-2)
+  - [2.1 Windows](#sec-2-1)
+  - [2.2 macOS](#sec-2-2)
+  - [2.3 データベースの保存場所](#sec-2-3)
+  - [2.4 アンインストール](#sec-2-4)
 - [3. 起動と画面構成](#sec-3)
 - [4. 化学種パネル](#sec-4)
   - [4.1 プリセット](#sec-4-1)
@@ -107,53 +111,88 @@ Fujita and Abe (1997) は原典 SPRADIAN の理論論文、Fujita and Abe (2003)
 
 ## 2. 動作環境とインストール
 
-**表 1.** 動作環境
+METEORAD は Windows 用インストーラと macOS 用ディスクイメージ (dmg) で配布しています。Python などの追加ソフトウェアは不要です。
 
-| 項目 | 内容 |
-|---|---|
-| OS | macOS / Linux / Windows (Python が動作する環境) |
-| Python | 3.9 以上 |
-| 計算コア | numpy |
-| GUI | matplotlib, PySide6 (Qt 6) |
+**表 1.** 動作環境と配布ファイル
 
-```text
-pip install numpy matplotlib PySide6
-```
+| 項目 | Windows | macOS |
+|---|---|---|
+| OS | Windows 10 / 11 (64 ビット) | macOS 14.4 以降、Apple Silicon (M1 以降) |
+| 配布ファイル | `METEORAD-<ver>-Windows-x64-Setup.exe`<br>(ポータブル版: `METEORAD-<ver>-Windows-x64.zip`) | `METEORAD-<ver>-macOS-arm64.dmg` |
+| ディスク容量 | 約 200 MB | 約 150 MB |
+| コード署名 | なし (初回に SmartScreen の警告) | なし (初回に Gatekeeper の確認) |
 
-ディレクトリ構成は次のとおりです。起動時に 2 つのデータベースディレクトリが走査されます。
+<a id="sec-2-1"></a>
 
-```text
-SPRADIAN/
-├── SPRADIAN-1.8/DATAPAC/database/   # 原典の空気・燃焼系 .dat (23 種)
-└── meteorad_py/
-    ├── meteorad/                    # 計算コア (RADIPAC の移植)
-    ├── meteorad_gui/                # PySide6 GUI
-    ├── database_debris/             # デブリ・金属種 .dat (20 種) / VALD 取込み先
-    ├── tools/                       # .dat 生成スクリプト・テスト
-    ├── notes/                       # 移植ノート・データ出典・検証記録
-    └── run_gui.py                   # GUI 起動スクリプト
-```
+### 2.1 Windows
 
-> `SPR-*` で始まる作業ファイルと `*.org` / `*.orig*` のバックアップは種の一覧から除外されます。`database_debris/` が無い場合は Debris/Metal グループが空になるだけです。
+1. `METEORAD-<ver>-Windows-x64-Setup.exe` をダブルクリックします。
+2. 「Windows によって PC が保護されました」と表示された場合は、**詳細情報** → **実行** を選びます (署名なしのため)。
+3. インストールモード (自分のみ／すべてのユーザー) を選びます。すべてのユーザーを選ぶと管理者権限が必要です。
+4. 利用条件を確認して同意し、インストール先 (既定: `C:\Program Files\METEORAD`) とデスクトップアイコンの有無を選んで **インストール** を押します。
+5. 完了画面で「METEORAD を実行する」にチェックを入れたまま **完了** を押すと起動します。
+
+> ポータブル版 (zip) を使う場合は、任意のフォルダに展開して `METEORAD\METEORAD.exe` を実行します。インストールは不要です。
+
+<a id="sec-2-2"></a>
+
+### 2.2 macOS
+
+1. `METEORAD-<ver>-macOS-arm64.dmg` をダブルクリックして開きます。
+2. **METEORAD.app** を同じウィンドウ内の **Applications** フォルダへドラッグします。
+3. アプリケーションフォルダ (または Launchpad) から METEORAD を開きます。初回は「開発元を検証できない」旨のダイアログが表示されるので **完了** (または **OK**) で閉じます。
+4. **システム設定** → **プライバシーとセキュリティ** を開き、下部の「“METEORAD”は…ブロックされました」の横にある **このまま開く** を押して、表示される確認で再度 **開く** を選びます (2 回目以降は不要)。
+5. dmg は Finder のサイドバーで取り出してかまいません。
+
+<a id="sec-2-3"></a>
+
+### 2.3 データベースの保存場所
+
+起動時に次の 2 つのデータベースが走査され、化学種パネルに表示されます。
+
+**表 2.** データベースの場所
+
+| グループ | 場所 | 内容 |
+|---|---|---|
+| Air/Combustion | アプリ内 (読み取り専用) | 原典 SPRADIAN DATAPAC の空気・燃焼系 23 種 |
+| Debris/Metal | Windows: `%APPDATA%\METEORAD\database_debris`<br>macOS: `~/Library/Application Support/METEORAD/database_debris` | デブリ・金属種 20 種と VALD 取込み (10 章) で作成した種 |
+
+> Debris/Metal 用フォルダは初回起動時に自動で作成され、同梱のデータベースがコピーされます。アプリを新しい版に更新すると、同梱ファイルと同じ名前のファイルは新しい版で上書きされます (それ以外のファイルは残ります)。同梱種を VALD 取込みで置き換えた場合などは、別名で保存するかバックアップを取ってください。フォルダの内容を変更したあとは **Tools → Rescan databases** で一覧を更新できます。
+
+<a id="sec-2-4"></a>
+
+### 2.4 アンインストール
+
+- Windows: **設定 → アプリ → インストールされているアプリ** で METEORAD を選び **アンインストール** します。
+- macOS: アプリケーションフォルダの METEORAD.app をゴミ箱に入れます。
+- どちらの場合もユーザーデータ (上表の Debris/Metal フォルダと設定) は残ります。不要なら `METEORAD` フォルダごと削除してください。
 
 <a id="sec-3"></a>
 
 ## 3. 起動と画面構成
 
+- Windows: スタートメニュー (またはデスクトップ) の **METEORAD** から起動します。
+- macOS: アプリケーションフォルダまたは Launchpad の **METEORAD** から起動します。
+- SPRADIAN-1.8 の制御ファイル (.ctl) は、起動後に **File → Load control file (.ctl)** で読み込めます (11 章)。
+
+コマンドラインから起動すると、.ctl を読み込んだ状態で開始したり、版を確認したりできます。
+
 ```text
-cd meteorad_py
-python run_gui.py                                              # 空のフォームで起動
-python run_gui.py ../SPRADIAN-1.8/RADIPAC/samples/sample1.ctl  # .ctl を読み込んで起動
-python run_gui.py --version
+# Windows (PowerShell)
+& "C:\Program Files\METEORAD\METEORAD.exe" sample1.ctl
+
+# macOS (ターミナル)
+/Applications/METEORAD.app/Contents/MacOS/METEORAD sample1.ctl
+/Applications/METEORAD.app/Contents/MacOS/METEORAD --version
 ```
 
-必要なパッケージが無い場合は、起動時に不足パッケージ名とインストールコマンドが表示されます。メインウィンドウは次の 4 つの領域で構成されます (図 1)。
+メインウィンドウは次の 4 つの領域で構成されます (図 1)。
 
 <p align="center"><img src="images/01_main_empty.png" width="640" alt="起動直後のメインウィンドウ"></p>
 
 <p align="center"><b>図 1.</b> 起動直後のメインウィンドウ</p>
 
-**表 2.** メインウィンドウの領域
+**表 3.** メインウィンドウの領域
 
 | 領域 | 位置 | 役割 |
 |---|---|---|
@@ -183,7 +222,7 @@ python run_gui.py --version
 
 Preset ボックスで代表的な組成と温度 (5 温度すべてに同じ値) を一括設定できます。
 
-**表 3.** プリセット
+**表 4.** プリセット
 
 | プリセット | 温度 | 組成 [m⁻³] |
 |---|---|---|
@@ -202,7 +241,7 @@ Preset ボックスで代表的な組成と温度 (5 温度すべてに同じ値
 
 <p align="center"><b>図 3.</b> パラメータパネル (多温度モード・スラブ強度有効)</p>
 
-**表 4.** パラメータ一覧
+**表 5.** パラメータ一覧
 
 | 項目 | 単位 | 説明 |
 |---|---|---|
@@ -217,7 +256,7 @@ Preset ボックスで代表的な組成と温度 (5 温度すべてに同じ値
 | Include continua (bf/fb/ff) | — | 束縛-自由・自由-束縛・自由-自由の連続スペクトルを含める |
 | Run / Cancel | — | 計算の開始・中断 (化学種または計算段階の区切りで停止) |
 
-**表 5.** 5 温度モデル
+**表 6.** 5 温度モデル
 
 | 温度 | 意味 | 主に支配する量 |
 |---|---|---|
@@ -261,7 +300,7 @@ Stark ∝ λ² · Ne,      vdW ∝ λ² · (N₀ / N_ref) · (Ttr / 296 K)^0.3
 
 ### 6.2 プロットパネルの機能
 
-**表 6.** プロットパネルのコントロール
+**表 7.** プロットパネルのコントロール
 
 | コントロール | 機能 |
 |---|---|
@@ -306,7 +345,7 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 
 <p align="center"><b>図 8.</b> File メニュー</p>
 
-**表 7.** メニュー項目
+**表 8.** メニュー項目
 
 | メニュー | 項目 | 機能 |
 |---|---|---|
@@ -325,7 +364,7 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 
 拡張子 .csv ではカンマ区切りでヘッダ 1 行、それ以外は空白区切りで `#` 付きヘッダになります。数値は `%.6e` 形式です。
 
-**表 8.** スペクトル CSV/DAT の列
+**表 9.** スペクトル CSV/DAT の列
 
 | 列名 | 単位 | 出力条件 |
 |---|---|---|
@@ -380,7 +419,7 @@ File → Fit observed spectrum... で開くフィット ウィンドウは、観
 
 ### 9.1 設定項目
 
-**表 9.** フィット ウィンドウの設定
+**表 10.** フィット ウィンドウの設定
 
 | グループ | 項目 | 説明 |
 |---|---|---|
@@ -422,7 +461,7 @@ File → Fit observed spectrum... で開くフィット ウィンドウは、観
 
 ## 10. VALD 線リストの取込み
 
-Tools → Import VALD line list... は、VALD3 (https://www.astro.uu.se/valdwiki/) の長形式抽出ファイルを SPRADIAN 形式の原子 .dat に変換し、`database_debris/` に保存します。
+Tools → Import VALD line list... は、VALD3 (https://www.astro.uu.se/valdwiki/) の長形式抽出ファイルを SPRADIAN 形式の原子 .dat に変換し、Debris/Metal 用フォルダ (2.3 節) に保存します。
 
 1. VALD に登録し、対象元素・電離段階の Extract Element (long format) を取得する。
 2. Import VALD line list... で抽出ファイル (.vald, .txt, .gz) を選ぶ。
@@ -444,7 +483,7 @@ Ak [m² Å]   = A_ul · λ_Å⁴ · 1e-30 / (8π c g_l)
 
 File → Load control file (.ctl)... で SPRADIAN-1.8 のジョブ制御ファイルを読み込み、波長範囲・格子間隔・線形状・圧力 FWHM・温度・化学種の密度をフォームに反映します。フォームで表現できない項目は、読込み後のダイアログで通知されます。
 
-**表 10.** .ctl 読込みの制約
+**表 11.** .ctl 読込みの制約
 
 | 制御ファイルの指定 | GUI での扱い |
 |---|---|
@@ -478,7 +517,7 @@ res = run_spectrum(
 from meteorad.control import read_control_file   # 旧形式ジョブファイル
 ```
 
-**表 11.** 計算コアのモジュール
+**表 12.** 計算コアのモジュール
 
 | モジュール | 内容 (C 版の対応) |
 |---|---|
@@ -500,7 +539,7 @@ from meteorad.control import read_control_file   # 旧形式ジョブファイ�
 
 ### 13.1 単位系と規約
 
-**表 12.** 単位
+**表 13.** 単位
 
 | 量 | 単位 |
 |---|---|
@@ -543,7 +582,7 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 
 ## 14. データベース
 
-**表 13.** 収録化学種
+**表 14.** 収録化学種
 
 | グループ | 化学種 |
 |---|---|
@@ -561,7 +600,7 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 - **FeO 橙色系**: 多状態が重なる複雑な系を、Te = 17050 cm⁻¹ の 1 状態 (S = 2, Λ = 0) で包絡線として表現。回転線の解析には使えません。
 - **Franck–Condon 因子**: 各状態の分子定数 (we, wexe, Be) と換算質量から Morse ポテンシャルを作り、振動波動関数の重なりを数値計算 (2026-10-23 改訂)。
 
-**表 14.** Morse 振動子による Franck–Condon 因子 (A_total は v′=0 の全遷移率 1/τ₀)
+**表 15.** Morse 振動子による Franck–Condon 因子 (A_total は v′=0 の全遷移率 1/τ₀)
 
 | バンド系 | rₑ′ / rₑ″ (Å) | q00 | q01 | q10 | A_total (s⁻¹) |
 |---|---|---|---|---|---|
