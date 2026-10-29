@@ -18,12 +18,12 @@ manuals (and, later, the application binaries) only** — the source code is not
 | 日本語 | [仕様書・ユーザーマニュアル](manual/ja.md) | [METEORAD_Manual_ja.docx](manual/METEORAD_Manual_ja.docx) |
 | English | [Specification and User Manual](manual/en.md) | [METEORAD_Manual_en.docx](manual/METEORAD_Manual_en.docx) |
 
-Web version / Web 版: https://nu-sx.github.io/meteorad/
+Web version / Web 版: https://nu-sx.github.io/METEORAD/
 
 ## Download / ダウンロード
 
 The application binaries (Windows installer, macOS dmg) are in preparation and
-will be published under [Releases](https://github.com/nu-sx/meteorad/releases).
+will be published under [Releases](https://github.com/nu-sx/METEORAD/releases).
 アプリケーション本体（Windows インストーラ・macOS dmg）は公開準備中です。
 
 ## Credits / クレジット
