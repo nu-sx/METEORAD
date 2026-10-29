@@ -13,10 +13,10 @@ manuals (and, later, the application binaries) only** — the source code is not
 
 ## Manual / マニュアル
 
-| | Web | Word (.docx) |
-|---|---|---|
-| 日本語 | [仕様書・ユーザーマニュアル](manual/ja.md) | [METEORAD_Manual_ja.docx](manual/METEORAD_Manual_ja.docx) |
-| English | [Specification and User Manual](manual/en.md) | [METEORAD_Manual_en.docx](manual/METEORAD_Manual_en.docx) |
+| | Web | PDF | Word (.docx) |
+|---|---|---|---|
+| 日本語 | [仕様書・ユーザーマニュアル](manual/ja.md) | [METEORAD_Manual_ja.pdf](manual/METEORAD_Manual_ja.pdf) | [METEORAD_Manual_ja.docx](manual/METEORAD_Manual_ja.docx) |
+| English | [Specification and User Manual](manual/en.md) | [METEORAD_Manual_en.pdf](manual/METEORAD_Manual_en.pdf) | [METEORAD_Manual_en.docx](manual/METEORAD_Manual_en.docx) |
 
 Web version / Web 版: https://nu-sx.github.io/METEORAD/
 

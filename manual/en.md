@@ -8,7 +8,7 @@
 
 > **Use of METEORAD requires citing Fujita & Abe (1997), Fujita & Abe (2003) and Abe et al. (2026) (Section 1.4).**
 
-[日本語版](ja.md) ・ [Download the Word version](METEORAD_Manual_en.docx)
+[日本語版](ja.md) ・ [PDF version](METEORAD_Manual_en.pdf) ・ [Word version](METEORAD_Manual_en.docx)
 
 ## Contents
 

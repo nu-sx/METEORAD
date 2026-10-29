@@ -8,7 +8,7 @@
 
 > **使用時は Fujita & Abe (1997)、Fujita & Abe (2003) および Abe et al. (2026) の引用が必須です (1.4 節)。**
 
-[English version](en.md) ・ [Word 版をダウンロード](METEORAD_Manual_ja.docx)
+[English version](en.md) ・ [PDF 版](METEORAD_Manual_ja.pdf) ・ [Word 版](METEORAD_Manual_ja.docx)
 
 ## 目次
 
