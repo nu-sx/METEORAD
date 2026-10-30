@@ -1,4 +1,4 @@
-<p align="center"><img src="manual/images/meteorad_icon_256.png" width="160" alt="METEORAD icon"></p>
+<p align="center"><img src="logo.png" width="800" alt="METEORAD — METEOr RADiation spectra"></p>
 
 # METEORAD — METEOr RADiation spectra
 
@@ -10,6 +10,10 @@ manuals only** — the source code is not public.
 高温プラズマ（空気・燃焼ガス・金属/酸化物蒸気）の line-by-line 発光・吸収スペクトル
 計算ソフトウェアです。流星・スペースデブリ・再突入カプセルの発光解析に使えます。
 **このリポジトリではマニュアルのみを配布しています**（ソースコードは非公開）。
+
+<p align="center"><img src="manual/images/04_debris_per_species.png" width="800" alt="METEORAD main window: debris ablation spectrum, per-species view"></p>
+<p align="center"><sub>Debris ablation at 4000 K (4000–6500 Å, 5 Å resolution), per-species view — each species' emission overlaid.<br>
+デブリ溶発 4000 K の計算例（4000–6500 Å、分解能 5 Å）。化学種ごとの発光を重ね描きした Per-species 表示。</sub></p>
 
 ## Manual / マニュアル
 
