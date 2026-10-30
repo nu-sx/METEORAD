@@ -4,7 +4,7 @@
 
 <p align="center"><b>METEOr RADiation spectra</b><br>Specification and User Manual</p>
 
-<p align="center">Python edition of SPRADIAN-1.8 (JAXA) — GUI version 0.1.0<br>Original code: SPRADIAN-1.8 — K. Fujita and T. Abe (ISAS/JAXA)<br>Additional atoms/molecules and GUI: Shinsuke Abe (阿部新助)<br>Document date: 2026-10-24</p>
+<p align="center">Python edition of SPRADIAN-1.8 (JAXA) — Version 1.0<br>Original code: SPRADIAN-1.8 — K. Fujita and T. Abe (ISAS/JAXA)<br>Additional atoms/molecules and GUI: Shinsuke Abe (阿部新助)<br>Document date: 2026-10-30</p>
 
 > **Use of METEORAD requires citing Fujita & Abe (1997), Fujita & Abe (2003) and Abe et al. (2026) (Section 1.4).**
 

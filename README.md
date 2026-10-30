@@ -2,6 +2,8 @@
 
 # METEORAD — METEOr RADiation spectra
 
+**Version 1.0** / バージョン 1.0
+
 Line-by-line emission/absorption spectra of high-temperature plasmas
 (air, combustion gases, metal/oxide vapours) for the analysis of meteor,
 space-debris and re-entry emission. **This repository distributes the

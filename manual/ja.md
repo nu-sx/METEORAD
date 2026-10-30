@@ -4,7 +4,7 @@
 
 <p align="center"><b>METEOr RADiation spectra</b><br>仕様書・ユーザーマニュアル</p>
 
-<p align="center">SPRADIAN-1.8 (JAXA) の Python 版 — GUI 版 0.1.0<br>原典: SPRADIAN-1.8 — 藤田和央・安部隆士 (ISAS/JAXA)<br>追加原子・分子データベースおよび GUI: 阿部新助 (Shinsuke Abe)<br>文書日付: 2026-10-24</p>
+<p align="center">SPRADIAN-1.8 (JAXA) の Python 版 — バージョン 1.0<br>原典: SPRADIAN-1.8 — 藤田和央・安部隆士 (ISAS/JAXA)<br>追加原子・分子データベースおよび GUI: 阿部新助 (Shinsuke Abe)<br>文書日付: 2026-10-30</p>
 
 > **使用時は Fujita & Abe (1997)、Fujita & Abe (2003) および Abe et al. (2026) の引用が必須です (1.4 節)。**
 
