@@ -4,7 +4,7 @@
 
 <p align="center"><b>METEOr RADiation spectra</b><br>仕様書・ユーザーマニュアル</p>
 
-<p align="center">SPRADIAN-1.8 (JAXA) の Python 版 — バージョン 1.0<br>原典: SPRADIAN-1.8 — 藤田和央・安部隆士 (ISAS/JAXA)<br>追加原子・分子データベースおよび GUI: 阿部新助 (Shinsuke Abe)<br>文書日付: 2026-10-30</p>
+<p align="center">SPRADIAN-1.8 (JAXA) の Python 版 — バージョン 1.0<br>原典: SPRADIAN-1.8 — 藤田和央・安部隆士 (ISAS/JAXA)<br>追加原子・分子データベースおよび GUI: 阿部新助 (Shinsuke Abe)<br>文書日付: 2026-11-05</p>
 
 > **使用時は Fujita & Abe (1997)、Fujita & Abe (2003) および Abe et al. (2026) の引用が必須です (1.4 節)。**
 
@@ -31,6 +31,7 @@
   - [6.1 基本手順](#sec-6-1)
   - [6.2 プロットパネルの機能](#sec-6-2)
   - [6.3 スラブ強度](#sec-6-3)
+  - [6.4 Saha 電離平衡](#sec-6-4)
 - [7. メニュー](#sec-7)
   - [7.1 スペクトルの保存形式](#sec-7-1)
 - [8. 温度スイープ](#sec-8)
@@ -82,6 +83,7 @@ Python 化・追加原子/分子・GUI・温度スイープ・観測スペクト
 - 線形状: Voigt / 矩形 / ローレンツ。圧力広がり FWHM の自動推定 (Stark + van der Waals)
 - 一様スラブの視線積分強度 (自己吸収込み) と Tel の黒体放射
 - 装置関数 (ガウス) による畳み込み、化学種ごとの色分け表示
+- Saha 式による電離平衡 (元素の全密度を中性・イオンに配分、Ne 固定または電荷中性で自己無撞着)
 - 温度スイープの一括計算と CSV 出力
 - 観測スペクトルへのフィット (グリッド探索 + 線形最小二乗 + Nelder–Mead 精密化)
 - VALD 線リストの取込み、SPRADIAN-1.8 の制御ファイル (.ctl) の読込み
@@ -337,13 +339,35 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 
 <p align="center"><b>図 7.</b> Meteor ablation 4500K のスラブ強度 (L = 0.1 m, 分解能 5 Å)</p>
 
+<a id="sec-6-4"></a>
+
+### 6.4 Saha 電離平衡
+
+計算コアは各化学種の数密度をすべて入力として扱い、電離平衡は計算しません (イオン密度も指定値のまま、Ne = Σ 電荷 × N)。Tools → Saha ionization balance... を使うと、同じ元素の電離段 (例: CaI と CaII) の密度を LTE の Saha 式で決めて化学種パネルに書き込めます。
+
+```text
+N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r) − Δχ) / Tel)
+```
+
+1. 化学種パネルで同じ元素の電離段を 2 つ以上チェックし (例: CaI, CaII)、パラメータパネルで温度を設定します。分配関数 U には Tex、Saha 因子には Tel を使います。
+2. ダイアログの Element totals に元素の全密度 [m⁻³] を入力します (初期値はチェック中の電離段の密度の和)。
+3. Electron density で **Fixed Ne** (Ne を指定) か **Self-consistent** (電荷中性 Ne = 追加電子 + Σ 電荷 × N を反復で解く) を選びます。IP lowering Δχ [K] で電離エネルギーの低下を与えられます (1 eV = 11604.5 K、既定 0)。
+4. Compute で各電離段の密度・Ne・電離度を表示し、Apply to species table で化学種パネルに反映します。
+5. **Use this Ne for the spectrum** をチェックすると、その Ne でスペクトル計算の Ne (Σ 電荷 × N) を上書きします。電子の供給源が計算に含まれない場合 (流星の他の金属など) に使います。上書き中はステータスバーに表示され、Tools → Clear Ne override、プリセットの選択、.ctl の読込みで解除されます。
+
+<p align="center"><img src="images/16_saha_dialog.png" width="420" alt="Saha ionization balance ダイアログ (4500 K, Ne = 10²⁰ m⁻³)"></p>
+
+<p align="center"><b>図 8.</b> Saha ionization balance ダイアログ (4500 K, Ne = 10²⁰ m⁻³)</p>
+
+> 分配関数は占有数計算と同じもの (.dat の準位和、Tex ≥ 5000 K で Qe 表) を使います。準位リストが打ち切られているため、d 殻の開いた原子 (Cr, Mn, Fe など) では U が小さめになります。リストにある最高の電離段より上への電離は無視します。温度を変えたあとは再計算してください (密度は自動では更新されません)。
+
 <a id="sec-7"></a>
 
 ## 7. メニュー
 
 <p align="center"><img src="images/09_menu_0_File.png" width="300" alt="File メニュー"></p>
 
-<p align="center"><b>図 8.</b> File メニュー</p>
+<p align="center"><b>図 9.</b> File メニュー</p>
 
 **表 8.** メニュー項目
 
@@ -355,6 +379,8 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 | File | Temperature sweep → CSV... | 温度を振った一括計算 (第 8 章) |
 | File | Fit observed spectrum (parameter search)... | 観測スペクトルへのフィット (第 9 章) |
 | Tools | Import VALD line list... | VALD 抽出ファイルを .dat に変換して取込み (第 10 章) |
+| Tools | Saha ionization balance... | 電離段の密度を Saha 式で決定し化学種パネルに反映 (6.4 節) |
+| Tools | Clear Ne override | Saha ダイアログで設定した Ne の上書きを解除 (6.4 節) |
 | Tools | Rescan databases | データベースディレクトリを再走査して種の一覧を更新 |
 | Help | About | バージョン・クレジット・単位系の表示 |
 
@@ -377,7 +403,7 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 
 <p align="center"><img src="images/12_about.png" width="440" alt="About ダイアログ (クレジットと単位系)"></p>
 
-<p align="center"><b>図 9.</b> About ダイアログ (クレジットと単位系)</p>
+<p align="center"><b>図 10.</b> About ダイアログ (クレジットと単位系)</p>
 
 <a id="sec-8"></a>
 
@@ -387,7 +413,7 @@ File → Temperature sweep → CSV... は、メインウィンドウの他のパ
 
 <p align="center"><img src="images/10_sweep_equilibrium.png" width="520" alt="温度スイープ ダイアログ (平衡モード)"></p>
 
-<p align="center"><b>図 10.</b> 温度スイープ ダイアログ (平衡モード)</p>
+<p align="center"><b>図 11.</b> 温度スイープ ダイアログ (平衡モード)</p>
 
 - **Equilibrium**: 1 つの温度 T を start / end / step で振り、5 温度すべてに適用します (原子種の既定)。
 - **Multi-temperature**: Ttr, Trot, Tvib, Tex, Tel を個別に固定または掃引します。掃引した温度の組合せは **Grid** (全組合せ) または **Linked** (同じ番号どうしを同時に進める; 点数が等しい必要あり) を選べます。分子種の既定は Trot + Tvib の連動掃引です。
@@ -396,7 +422,7 @@ File → Temperature sweep → CSV... は、メインウィンドウの他のパ
 
 <p align="center"><img src="images/11_sweep_multi.png" width="520" alt="温度スイープ ダイアログ (多温度モード)"></p>
 
-<p align="center"><b>図 11.</b> 温度スイープ ダイアログ (多温度モード)</p>
+<p align="center"><b>図 12.</b> 温度スイープ ダイアログ (多温度モード)</p>
 
 出力 CSV は `#` で始まるメタデータ行の後に、`wavelength_A` と温度セットごとの列 (例: `T=5000K`, `Trot=3000K Tvib=4000K`) が並びます。pandas では次のように読めます。
 
@@ -413,7 +439,7 @@ File → Fit observed spectrum... で開くフィット ウィンドウは、観
 
 <p align="center"><img src="images/13_fit_setup.png" width="640" alt="フィット ウィンドウ: 観測スペクトルの読込みと探索条件の設定"></p>
 
-<p align="center"><b>図 12.</b> フィット ウィンドウ: 観測スペクトルの読込みと探索条件の設定</p>
+<p align="center"><b>図 13.</b> フィット ウィンドウ: 観測スペクトルの読込みと探索条件の設定</p>
 
 <a id="sec-9-1"></a>
 
@@ -445,15 +471,15 @@ File → Fit observed spectrum... で開くフィット ウィンドウは、観
 
 <p align="center"><img src="images/14_fit_result.png" width="640" alt="フィット結果: 観測 (黒)・モデル (赤)・成分・残差と評価点の一覧"></p>
 
-<p align="center"><b>図 13.</b> フィット結果: 観測 (黒)・モデル (赤)・成分・残差と評価点の一覧</p>
+<p align="center"><b>図 14.</b> フィット結果: 観測 (黒)・モデル (赤)・成分・残差と評価点の一覧</p>
 
-図 13 の例は、MgI + FeI + NaI (4300 K, Mg/Fe = 1.33, 分解能 2 Å) から合成しノイズを加えた 5100–5300 Å のスペクトルを、MgI と FeI でフィットしたものです。T = 4290 K、Mg/Fe = 1.36、分解能 2.00 Å が復元されています (相対 RMS 0.075 はノイズ由来)。
+図 14 の例は、MgI + FeI + NaI (4300 K, Mg/Fe = 1.33, 分解能 2 Å) から合成しノイズを加えた 5100–5300 Å のスペクトルを、MgI と FeI でフィットしたものです。T = 4290 K、Mg/Fe = 1.36、分解能 2.00 Å が復元されています (相対 RMS 0.075 はノイズ由来)。
 
-結果表の行を選ぶとその解が表示されます。**Apply to main window** は選択した解の温度・密度・圧力 FWHM・分解能をメインウィンドウに設定して再計算し、観測スペクトルを重ね描きします (図 14)。**Save results CSV** は評価した全点のパラメータと誤差を、**Save model CSV** は選択解の観測・モデル・残差・各成分を観測波長で保存します。
+結果表の行を選ぶとその解が表示されます。**Apply to main window** は選択した解の温度・密度・圧力 FWHM・分解能をメインウィンドウに設定して再計算し、観測スペクトルを重ね描きします (図 15)。**Save results CSV** は評価した全点のパラメータと誤差を、**Save model CSV** は選択解の観測・モデル・残差・各成分を観測波長で保存します。
 
 <p align="center"><img src="images/15_fit_applied_main.png" width="640" alt="Apply to main window の結果 (観測スペクトルを重ね描き)"></p>
 
-<p align="center"><b>図 14.</b> Apply to main window の結果 (観測スペクトルを重ね描き)</p>
+<p align="center"><b>図 15.</b> Apply to main window の結果 (観測スペクトルを重ね描き)</p>
 
 > Observed units が Arbitrary の場合、数密度は比のみが意味を持ちます (表示値は参照密度に対する相対値)。絶対密度を求めるには絶対較正した観測と Absolute を使ってください。
 
@@ -517,6 +543,21 @@ res = run_spectrum(
 from meteorad.control import read_control_file   # 旧形式ジョブファイル
 ```
 
+Saha 電離平衡 (6.4 節) は `meteorad.saha` から利用できます。`ne=None` で電荷中性から Ne を解き、`run_spectrum(..., elec_dens=...)` で Ne を上書きできます (既定は C 版と同じ Σ 電荷 × N)。
+
+```text
+from meteorad.saha import saha_densities
+
+names = ["CaI", "CaII", "FeI"]
+sah = saha_densities(names, {"Ca": 1e17}, T=4500.0, ne=1e20,
+                     other_dens={"FeI": 1e18}, db_dir="database_debris")
+res = run_spectrum(names, sah.densities_for(names),
+                   Temperature(4500, 4500, 4500, 4500, 4500),
+                   3900.0, 4000.0, 0.5, "database_debris",
+                   elec_dens=sah.ne)
+# sah.ne, sah.ion_fraction["Ca"], sah.densities["CaII"], ...
+```
+
 **表 12.** 計算コアのモジュール
 
 | モジュール | 内容 (C 版の対応) |
@@ -530,6 +571,7 @@ from meteorad.control import read_control_file   # 旧形式ジョブファイ�
 | spectrum.py | 合成・黒体・スラブ強度・保存 (Gene_Spec, Gene_Blck, Self-abs) |
 | runner.py | run_spectrum(): 高水準 API (CalSpec main) |
 | vald.py | VALD 長形式 → .dat 変換 |
+| saha.py | Saha 電離平衡 saha_densities() (METEORAD 追加、C 版に無し) |
 
 <a id="sec-13"></a>
 
@@ -589,7 +631,7 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 | Air/Combustion (原典 DATAPAC, 23 種) | ArI, C2, CH, CI, CII, CN, CO, CO+, H2, HI, HII, N2, N2+, NH, NI, NII, NO, NO+, O2, O2+, OH, OI, OII |
 | Debris/Metal — 中性原子 (13) | NaI, MgI, AlI, SiI, KI, CaI, TiI, CrI, MnI, FeI, NiI, CuI, LiI |
 | Debris/Metal — イオン (3) | CaII, MgII, SiII |
-| Debris/Metal — 金属酸化物 (4) | MgO (B–X 緑色系), AlO (B–X 青緑系), TiO (A–X γ 系, C–X α 系), FeO (橙色系, 包絡線近似) |
+| Debris/Metal — 金属酸化物 (4) | MgO (B–X 緑色系), AlO (B–X 青緑系), TiO (A–X γ 系, B–X γ′ 系, C–X α 系), FeO (橙色系, 包絡線近似) |
 
 <a id="sec-14-1"></a>
 
@@ -624,7 +666,8 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 
 - 追加したデブリ原子の .dat には束縛-自由 / 自由-束縛のブロックが無く、これらの種の再結合連続光は含まれません (自由-自由は有効電荷 EffC2 = 0.01 の概算)。
 - 一部の A 値は log gf からの換算で ±10–30 % の不確かさがあります。精密な解析には VALD 取込みでの置換を推奨します。
-- 内部分配関数の Qe 表は 1500–7000 K 向けです。約 8000 K を超えると準位の打ち切りにより不完全になります。Tex ≥ 5000 K では Qe 表参照に切り替わります。
+- 内部分配関数の Qe 表は 1500–7000 K 向けです。約 8000 K を超えると準位の打ち切りにより不完全になります。Tex ≥ 5000 K では Qe 表参照に切り替わります。d 殻の開いた原子では 8000 K 未満でも影響があります (NIST 比 U_dat/U_NIST: Cr I 0.73 / 0.36, Mn I 0.94 / 0.52, Fe I 0.98 / 0.80, Ni I 0.99 / 0.90 — 5000 / 9000 K)。
+- イオン密度は入力値のまま使われ、電離平衡は自動では適用されません。必要なら Saha 電離平衡 (6.4 節) を使ってください。
 - TiO・FeO は第 14.1 節の近似を含みます。FCF の Morse 近似は低い v で数 % の精度、高い v′ ではより大きな誤差を持ちえます。
 - 三原子分子 (CO₂ など) の経路は未実装です。
 - Python 版は C 版の 1D/2D 輻射輸送ツール (Ray-integ, 1D-slab, S-cap, 3D-integ) を含みません (一様スラブのみ)。

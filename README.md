@@ -26,6 +26,9 @@ manuals only** — the source code is not public.
 
 Web version / Web 版: https://nu-sx.github.io/METEORAD/
 
+**Update 2026-11-05**: Saha ionization balance (Tools → Saha ionization balance, `meteorad.saha`; manual §6.4); TiO B–X γ′ system added, Ti I line list from NIST/Kurucz.
+**更新 2026-11-05**: Saha 電離平衡（Tools → Saha ionization balance、`meteorad.saha`、マニュアル 6.4 節）を追加。TiO の B–X γ′ 系を追加し、Ti I の線リストを NIST/Kurucz に更新。
+
 ## Credits / クレジット
 
 This software is based on JAXA's SPRADIAN (SPRADIAN-1.8; K. Fujita and T. Abe,

@@ -4,7 +4,7 @@
 
 <p align="center"><b>METEOr RADiation spectra</b><br>Specification and User Manual</p>
 
-<p align="center">Python edition of SPRADIAN-1.8 (JAXA) — Version 1.0<br>Original code: SPRADIAN-1.8 — K. Fujita and T. Abe (ISAS/JAXA)<br>Additional atoms/molecules and GUI: Shinsuke Abe (阿部新助)<br>Document date: 2026-10-30</p>
+<p align="center">Python edition of SPRADIAN-1.8 (JAXA) — Version 1.0<br>Original code: SPRADIAN-1.8 — K. Fujita and T. Abe (ISAS/JAXA)<br>Additional atoms/molecules and GUI: Shinsuke Abe (阿部新助)<br>Document date: 2026-11-05</p>
 
 > **Use of METEORAD requires citing Fujita & Abe (1997), Fujita & Abe (2003) and Abe et al. (2026) (Section 1.4).**
 
@@ -31,6 +31,7 @@
   - [6.1 Basic procedure](#sec-6-1)
   - [6.2 Plot-panel controls](#sec-6-2)
   - [6.3 Slab intensity](#sec-6-3)
+  - [6.4 Saha ionization balance](#sec-6-4)
 - [7. Menus](#sec-7)
   - [7.1 Spectrum file format](#sec-7-1)
 - [8. Temperature sweep](#sec-8)
@@ -82,6 +83,7 @@ The METEORAD extensions — Python port, additional atoms/molecules, GUI, temper
 - Line shapes: Voigt / rectangular / Lorentzian; automatic estimate of the pressure FWHM (Stark + van der Waals)
 - Uniform-slab line-of-sight intensity with self-absorption, and the blackbody at Tel
 - Gaussian instrument-function convolution; spectra coloured by dominant species
+- Saha ionization balance (splits element totals over neutral/ion stages; fixed Ne or self-consistent from charge neutrality)
 - Batch temperature sweeps exported to CSV
 - Fitting of observed spectra (grid search + linear least squares + Nelder–Mead refinement)
 - Import of VALD line lists; reading SPRADIAN-1.8 control files (.ctl)
@@ -337,13 +339,35 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 
 <p align="center"><b>Figure 7.</b> Slab intensity of Meteor ablation 4500K (L = 0.1 m, 5 Å resolution)</p>
 
+<a id="sec-6-4"></a>
+
+### 6.4 Saha ionization balance
+
+The computational core takes every species density as input and applies no ionization balance (ion densities are used as given; Ne = Σ charge × N). Tools → Saha ionization balance... sets the densities of the ionization stages of an element (e.g. CaI and CaII) by the LTE Saha equation and writes them into the species panel.
+
+```text
+N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r) − Δχ) / Tel)
+```
+
+1. Check two or more ionization stages of the same element in the species panel (e.g. CaI, CaII) and set the temperatures in the parameter panel. The partition functions U use Tex, the Saha factor uses Tel.
+2. Enter the total density of each element [m⁻³] under Element totals (default: the sum of the checked stages).
+3. Under Electron density choose **Fixed Ne** or **Self-consistent** (charge neutrality Ne = extra electrons + Σ charge × N, solved iteratively). IP lowering Δχ [K] lowers every ionization energy (1 eV = 11604.5 K; default 0).
+4. Compute shows the stage densities, Ne and the ionized fractions; Apply to species table writes them into the species panel.
+5. With **Use this Ne for the spectrum** checked, that Ne replaces the run's Ne (Σ charge × N). Use it when the electron donors are not part of the calculation (e.g. other meteor metals). An active override is shown in the status bar and is cleared by Tools → Clear Ne override, choosing a preset or loading a .ctl file.
+
+<p align="center"><img src="images/16_saha_dialog.png" width="420" alt="Saha ionization balance dialog (4500 K, Ne = 10²⁰ m⁻³)"></p>
+
+<p align="center"><b>Figure 8.</b> Saha ionization balance dialog (4500 K, Ne = 10²⁰ m⁻³)</p>
+
+> The partition functions are the ones used for the populations (level sums of the .dat file; Qe tables for Tex ≥ 5000 K). The truncated level lists make U too small for open-d-shell atoms (Cr, Mn, Fe, ...). Ionization beyond the highest stage in the list is neglected. Recompute after changing the temperatures (densities are not updated automatically).
+
 <a id="sec-7"></a>
 
 ## 7. Menus
 
 <p align="center"><img src="images/09_menu_0_File.png" width="300" alt="File menu"></p>
 
-<p align="center"><b>Figure 8.</b> File menu</p>
+<p align="center"><b>Figure 9.</b> File menu</p>
 
 **Table 8.** Menu items
 
@@ -355,6 +379,8 @@ I(λ) = ε(λ) / κ(λ) · [1 − exp(−κ(λ) L)]
 | File | Temperature sweep → CSV... | Batch temperature sweep (Chapter 8) |
 | File | Fit observed spectrum (parameter search)... | Fit an observed spectrum (Chapter 9) |
 | Tools | Import VALD line list... | Convert a VALD extract to a .dat file (Chapter 10) |
+| Tools | Saha ionization balance... | Set ionization-stage densities by the Saha equation (Section 6.4) |
+| Tools | Clear Ne override | Remove the Ne override set in the Saha dialog (Section 6.4) |
 | Tools | Rescan databases | Rescan the database directories and refresh the species list |
 | Help | About | Version, credits and units |
 
@@ -377,7 +403,7 @@ With a .csv suffix the file is comma-separated with one header line; otherwise i
 
 <p align="center"><img src="images/12_about.png" width="440" alt="About dialog (credits and units)"></p>
 
-<p align="center"><b>Figure 9.</b> About dialog (credits and units)</p>
+<p align="center"><b>Figure 10.</b> About dialog (credits and units)</p>
 
 <a id="sec-8"></a>
 
@@ -387,7 +413,7 @@ File → Temperature sweep → CSV... keeps every other main-window parameter fi
 
 <p align="center"><img src="images/10_sweep_equilibrium.png" width="520" alt="Temperature-sweep dialog (equilibrium mode)"></p>
 
-<p align="center"><b>Figure 10.</b> Temperature-sweep dialog (equilibrium mode)</p>
+<p align="center"><b>Figure 11.</b> Temperature-sweep dialog (equilibrium mode)</p>
 
 - **Equilibrium**: one temperature T swept by start / end / step and applied to all five components (default for atoms).
 - **Multi-temperature**: each of Ttr, Trot, Tvib, Tex, Tel is fixed or swept. Swept components are combined as **Grid** (all combinations) or **Linked** (advanced together; needs equal numbers of points). Default for molecules: Trot + Tvib linked.
@@ -396,7 +422,7 @@ File → Temperature sweep → CSV... keeps every other main-window parameter fi
 
 <p align="center"><img src="images/11_sweep_multi.png" width="520" alt="Temperature-sweep dialog (multi-temperature mode)"></p>
 
-<p align="center"><b>Figure 11.</b> Temperature-sweep dialog (multi-temperature mode)</p>
+<p align="center"><b>Figure 12.</b> Temperature-sweep dialog (multi-temperature mode)</p>
 
 The CSV starts with `#` metadata lines, followed by `wavelength_A` and one column per temperature set (e.g. `T=5000K`, `Trot=3000K Tvib=4000K`). Read it with pandas as follows.
 
@@ -413,7 +439,7 @@ File → Fit observed spectrum... opens the fit window. It loads an observed spe
 
 <p align="center"><img src="images/13_fit_setup.png" width="640" alt="Fit window: loading the observation and setting up the search"></p>
 
-<p align="center"><b>Figure 12.</b> Fit window: loading the observation and setting up the search</p>
+<p align="center"><b>Figure 13.</b> Fit window: loading the observation and setting up the search</p>
 
 <a id="sec-9-1"></a>
 
@@ -445,15 +471,15 @@ File → Fit observed spectrum... opens the fit window. It loads an observed spe
 
 <p align="center"><img src="images/14_fit_result.png" width="640" alt="Fit result: observed (black), model (red), components, residuals and the table of evaluated points"></p>
 
-<p align="center"><b>Figure 13.</b> Fit result: observed (black), model (red), components, residuals and the table of evaluated points</p>
+<p align="center"><b>Figure 14.</b> Fit result: observed (black), model (red), components, residuals and the table of evaluated points</p>
 
-The example in Figure 13 fits a synthetic 5100–5300 Å spectrum (MgI + FeI + NaI, 4300 K, Mg/Fe = 1.33, 2 Å resolution, noise added) with MgI and FeI. It recovers T = 4290 K, Mg/Fe = 1.36 and a resolution of 2.00 Å (the relative RMS of 0.075 is the added noise).
+The example in Figure 14 fits a synthetic 5100–5300 Å spectrum (MgI + FeI + NaI, 4300 K, Mg/Fe = 1.33, 2 Å resolution, noise added) with MgI and FeI. It recovers T = 4290 K, Mg/Fe = 1.36 and a resolution of 2.00 Å (the relative RMS of 0.075 is the added noise).
 
-Selecting a row shows that solution. **Apply to main window** copies its temperatures, densities, pressure FWHM and resolution into the main window, re-runs and overlays the observation (Figure 14). **Save results CSV** stores the parameters and errors of all evaluated points; **Save model CSV** stores observation, model, residual and components of the selected solution on the observed wavelengths.
+Selecting a row shows that solution. **Apply to main window** copies its temperatures, densities, pressure FWHM and resolution into the main window, re-runs and overlays the observation (Figure 15). **Save results CSV** stores the parameters and errors of all evaluated points; **Save model CSV** stores observation, model, residual and components of the selected solution on the observed wavelengths.
 
 <p align="center"><img src="images/15_fit_applied_main.png" width="640" alt="Result of Apply to main window (observed spectrum overlaid)"></p>
 
-<p align="center"><b>Figure 14.</b> Result of Apply to main window (observed spectrum overlaid)</p>
+<p align="center"><b>Figure 15.</b> Result of Apply to main window (observed spectrum overlaid)</p>
 
 > With Observed units = Arbitrary only density ratios are meaningful (shown values are relative). Use an absolutely calibrated observation with Absolute to obtain absolute densities.
 
@@ -517,6 +543,21 @@ res = run_spectrum(
 from meteorad.control import read_control_file   # legacy job files
 ```
 
+The Saha ionization balance (Section 6.4) is available as `meteorad.saha`. With `ne=None` Ne is solved from charge neutrality; `run_spectrum(..., elec_dens=...)` overrides the run's Ne (default as in C: Σ charge × N).
+
+```text
+from meteorad.saha import saha_densities
+
+names = ["CaI", "CaII", "FeI"]
+sah = saha_densities(names, {"Ca": 1e17}, T=4500.0, ne=1e20,
+                     other_dens={"FeI": 1e18}, db_dir="database_debris")
+res = run_spectrum(names, sah.densities_for(names),
+                   Temperature(4500, 4500, 4500, 4500, 4500),
+                   3900.0, 4000.0, 0.5, "database_debris",
+                   elec_dens=sah.ne)
+# sah.ne, sah.ion_fraction["Ca"], sah.densities["CaII"], ...
+```
+
 **Table 12.** Core modules
 
 | Module | Content (C counterpart) |
@@ -530,6 +571,7 @@ from meteorad.control import read_control_file   # legacy job files
 | spectrum.py | assembly, blackbody, slab intensity, output (Gene_Spec, Gene_Blck, Self-abs) |
 | runner.py | run_spectrum(): high-level API (CalSpec main) |
 | vald.py | VALD long format → .dat conversion |
+| saha.py | Saha ionization balance saha_densities() (METEORAD addition, not in C) |
 
 <a id="sec-13"></a>
 
@@ -589,7 +631,7 @@ Resolution FWHM convolves with a unit-area Gaussian, conserving integrated flux.
 | Air/Combustion (original DATAPAC, 23) | ArI, C2, CH, CI, CII, CN, CO, CO+, H2, HI, HII, N2, N2+, NH, NI, NII, NO, NO+, O2, O2+, OH, OI, OII |
 | Debris/Metal — neutral atoms (13) | NaI, MgI, AlI, SiI, KI, CaI, TiI, CrI, MnI, FeI, NiI, CuI, LiI |
 | Debris/Metal — ions (3) | CaII, MgII, SiII |
-| Debris/Metal — metal oxides (4) | MgO (B–X green), AlO (B–X blue-green), TiO (A–X γ, C–X α), FeO (orange, envelope approx.) |
+| Debris/Metal — metal oxides (4) | MgO (B–X green), AlO (B–X blue-green), TiO (A–X γ, B–X γ′, C–X α), FeO (orange, envelope approx.) |
 
 <a id="sec-14-1"></a>
 
@@ -624,7 +666,8 @@ Resolution FWHM convolves with a unit-area Gaussian, conserving integrated flux.
 
 - The added debris-atom .dat files have no bound-free / free-bound blocks, so recombination continua of these species are absent (free-free uses the rough effective charge EffC2 = 0.01).
 - Some A values come from log gf conversions with ±10–30 % uncertainty; replace them via VALD import for precise work.
-- The Qe partition-function tables cover 1500–7000 K; above ~8000 K level truncation makes them incomplete. For Tex ≥ 5000 K the Qe tables are used.
+- The Qe partition-function tables cover 1500–7000 K; above ~8000 K level truncation makes them incomplete. For Tex ≥ 5000 K the Qe tables are used. For open-d-shell atoms the truncation matters below 8000 K too (U_dat/U_NIST: Cr I 0.73 / 0.36, Mn I 0.94 / 0.52, Fe I 0.98 / 0.80, Ni I 0.99 / 0.90 at 5000 / 9000 K).
+- Ion densities are used as given; no ionization balance is applied automatically. Use the Saha ionization balance (Section 6.4) when needed.
 - TiO and FeO carry the approximations of Section 14.1. Morse FCFs are good to a few % at low v; errors can be larger at high v′.
 - The triatomic path (CO₂ etc.) is not implemented.
 - The Python edition does not include the C version's 1D/2D radiative-transfer tools (Ray-integ, 1D-slab, S-cap, 3D-integ); only the uniform slab is available.
