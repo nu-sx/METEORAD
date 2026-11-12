@@ -103,7 +103,7 @@ Any publication, presentation or report based on METEORAD **must cite all three 
 
 1. Fujita K, Abe T (1997) SPRADIAN, structured package for radiation analysis: theory and application. ISAS Report No. 669, pp. 1–47. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/31438
 2. Fujita K, Abe T (2003) Development of a radiation analysis code for hypervelocity reentry applications. ISAS Report SP No. 17, pp. 69–82. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/33242
-3. Abe S, et al (2026) C₂, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based slitless video spectroscopy. Earth, Planets and Space.
+3. Abe S, et al (2026) C₂ Swan, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based spectroscopy. Earth, Planets and Space, submitted.
 
 Fujita and Abe (1997) is the original SPRADIAN theory paper and Fujita and Abe (2003) describes the development of the radiation analysis code for hypervelocity reentry. Abe et al. (2026) describes the METEORAD extensions of SPRADIAN: the Python port, the additional atoms/molecules for atmospheric entry and meteor emission, the GUI, temperature sweeps, fitting of observed spectra, the Python API, etc.
 
@@ -686,7 +686,7 @@ Any use of METEORAD must cite all three papers below in the acknowledgements/ref
 
 1. Fujita K, Abe T (1997) SPRADIAN, structured package for radiation analysis: theory and application. ISAS Report No. 669, pp. 1–47. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/31438
 2. Fujita K, Abe T (2003) Development of a radiation analysis code for hypervelocity reentry applications. ISAS Report SP No. 17, pp. 69–82. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/33242
-3. Abe S, et al (2026) C₂, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based slitless video spectroscopy. Earth, Planets and Space.
+3. Abe S, et al (2026) C₂ Swan, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based spectroscopy. Earth, Planets and Space, submitted.
 
 Fujita and Abe (1997) is the original SPRADIAN theory paper and Fujita and Abe (2003) describes the development of the radiation analysis code for hypervelocity reentry. Abe et al. (2026) describes the METEORAD extensions of SPRADIAN: the Python port, the additional atoms/molecules for atmospheric entry and meteor emission, the GUI, temperature sweeps, fitting of observed spectra, the Python API, etc.
 

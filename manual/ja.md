@@ -103,7 +103,7 @@ METEORAD を使用した成果 (論文・学会発表・報告書など) を公�
 
 1. Fujita K, Abe T (1997) SPRADIAN, structured package for radiation analysis: theory and application. ISAS Report No. 669, pp. 1–47. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/31438
 2. Fujita K, Abe T (2003) Development of a radiation analysis code for hypervelocity reentry applications. ISAS Report SP No. 17, pp. 69–82. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/33242
-3. Abe S, et al (2026) C₂, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based slitless video spectroscopy. Earth, Planets and Space.
+3. Abe S, et al (2026) C₂ Swan, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based spectroscopy. Earth, Planets and Space, submitted.
 
 Fujita and Abe (1997) は原典 SPRADIAN の理論論文、Fujita and Abe (2003) は超高速再突入向け輻射解析コードの開発論文、Abe et al. (2026) は、SPRADIAN に対する METEORAD の拡張 (Python 化、大気圏突入・流星発光に重要な原子・分子の追加、GUI、温度スイープ、観測スペクトルのフィット、Python API など) を記述した論文です。
 
@@ -686,7 +686,7 @@ METEORAD の使用時は、謝辞・参考文献に以下の 3 論文を必ず�
 
 1. Fujita K, Abe T (1997) SPRADIAN, structured package for radiation analysis: theory and application. ISAS Report No. 669, pp. 1–47. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/31438
 2. Fujita K, Abe T (2003) Development of a radiation analysis code for hypervelocity reentry applications. ISAS Report SP No. 17, pp. 69–82. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/33242
-3. Abe S, et al (2026) C₂, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based slitless video spectroscopy. Earth, Planets and Space.
+3. Abe S, et al (2026) C₂ Swan, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based spectroscopy. Earth, Planets and Space, submitted.
 
 Fujita and Abe (1997) は原典 SPRADIAN の理論論文、Fujita and Abe (2003) は超高速再突入向け輻射解析コードの開発論文、Abe et al. (2026) は、SPRADIAN に対する METEORAD の拡張 (Python 化、大気圏突入・流星発光に重要な原子・分子の追加、GUI、温度スイープ、観測スペクトルのフィット、Python API など) を記述した論文です。
 

@@ -47,7 +47,7 @@ METEORAD を使用した成果の公表時には、謝辞・参考文献に以�
 
 1. Fujita K, Abe T (1997) SPRADIAN, structured package for radiation analysis: theory and application. ISAS Report No. 669, pp. 1–47. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/31438
 2. Fujita K, Abe T (2003) Development of a radiation analysis code for hypervelocity reentry applications. ISAS Report SP No. 17, pp. 69–82. Institute of Space and Astronautical Science. https://jaxa.repo.nii.ac.jp/records/33242
-3. Abe S, et al (2026) C₂, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based slitless video spectroscopy. Earth, Planets and Space.
+3. Abe S, et al (2026) C₂ Swan, CH and CN emission, surface temperature and luminous efficiency of the Hayabusa2 sample-return capsule from ground-based spectroscopy. Earth, Planets and Space, submitted.
 
 Abe et al. (2026) describes the METEORAD extensions of SPRADIAN: the Python port,
 the additional atoms/molecules for atmospheric entry and meteor emission, the GUI,
