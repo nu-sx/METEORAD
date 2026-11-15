@@ -4,7 +4,7 @@
 
 <p align="center"><b>METEOr RADiation spectra</b><br>Specification and User Manual</p>
 
-<p align="center">Python edition of SPRADIAN-1.8 (JAXA) — Version 1.0<br>Original code: SPRADIAN-1.8 — K. Fujita and T. Abe (ISAS/JAXA)<br>Additional atoms/molecules and GUI: Shinsuke Abe (阿部新助)<br>Document date: 2026-11-05</p>
+<p align="center">Python edition of SPRADIAN-1.8 (JAXA) — Version 1.0<br>Original code: SPRADIAN-1.8 — K. Fujita and T. Abe (ISAS/JAXA)<br>Additional atoms/molecules and GUI: Shinsuke Abe (阿部新助)<br>Document date: 2026-11-16</p>
 
 > **Use of METEORAD requires citing Fujita & Abe (1997), Fujita & Abe (2003) and Abe et al. (2026) (Section 1.4).**
 
@@ -32,6 +32,7 @@
   - [6.2 Plot-panel controls](#sec-6-2)
   - [6.3 Slab intensity](#sec-6-3)
   - [6.4 Saha ionization balance](#sec-6-4)
+  - [6.5 Electron density from the neutral atoms](#sec-6-5)
 - [7. Menus](#sec-7)
   - [7.1 Spectrum file format](#sec-7-1)
 - [8. Temperature sweep](#sec-8)
@@ -84,6 +85,7 @@ The METEORAD extensions — Python port, additional atoms/molecules, GUI, temper
 - Uniform-slab line-of-sight intensity with self-absorption, and the blackbody at Tel
 - Gaussian instrument-function convolution; spectra coloured by dominant species
 - Saha ionization balance (splits element totals over neutral/ion stages; fixed Ne or self-consistent from charge neutrality)
+- Electron density from the neutral-atom densities and the temperature (method of Borovička 1993)
 - Batch temperature sweeps exported to CSV
 - Fitting of observed spectra (grid search + linear least squares + Nelder–Mead refinement)
 - Import of VALD line lists; reading SPRADIAN-1.8 control files (.ctl)
@@ -157,9 +159,9 @@ Two databases are scanned at start-up and listed in the species panel.
 | Group | Location | Contents |
 |---|---|---|
 | Air/Combustion | inside the application (read-only) | 23 air/combustion species of the original SPRADIAN DATAPAC |
-| Debris/Metal | Windows: `%APPDATA%\METEORAD\database_debris`<br>macOS: `~/Library/Application Support/METEORAD/database_debris` | 20 debris/metal species and any species created by VALD import (Chapter 10) |
+| Meteor, Debris | Windows: `%APPDATA%\METEORAD\database_debris`<br>macOS: `~/Library/Application Support/METEORAD/database_debris` | 45 meteor/debris species and any species created by VALD import (Chapter 10); one folder, shown as the two groups Meteor and Debris (Chapter 4) |
 
-> The Debris/Metal folder is created automatically on first start and the bundled databases are copied into it. When the application is updated, files with the same names as the bundled ones are overwritten by the new version (other files are kept); if you replaced a bundled species, e.g. by a VALD import, save it under another name or keep a backup. After changing the folder, use **Tools → Rescan databases** to refresh the list.
+> The database_debris folder is created automatically on first start and the bundled databases are copied into it. When the application is updated, files with the same names as the bundled ones are overwritten by the new version (other files are kept); if you replaced a bundled species, e.g. by a VALD import, save it under another name or keep a backup. After changing the folder, use **Tools → Rescan databases** to refresh the list.
 
 <a id="sec-2-4"></a>
 
@@ -167,7 +169,7 @@ Two databases are scanned at start-up and listed in the species panel.
 
 - Windows: in **Settings → Apps → Installed apps**, select METEORAD and choose **Uninstall**.
 - macOS: move METEORAD.app from the Applications folder to the Trash.
-- In both cases the user data (the Debris/Metal folder above and the settings) is kept; delete the `METEORAD` folder if you no longer need it.
+- In both cases the user data (the database_debris folder above and the settings) is kept; delete the `METEORAD` folder if you no longer need it.
 
 <a id="sec-3"></a>
 
@@ -211,18 +213,18 @@ The main window has four areas (Figure 1).
 
 <p align="center"><b>Figure 2.</b> Species panel (after the Meteor ablation 4500K preset)</p>
 
-- Species are grouped as **Air/Combustion** (original DATAPAC) and **Debris/Metal** (database_debris).
+- Species are shown in three groups: **Air/Combustion** (original DATAPAC), **Meteor** and **Debris**. Meteor and Debris both come from the database_debris folder, and each species is in exactly one of them. **Meteor** holds the atoms and ions of the elements that make up meteoroids (Na, Mg, Al, Si, P, S, K, Ca, Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Sr, Ba) and their oxides (MgO, AlO, SiO, CaO, TiO, FeO); **Debris** holds everything else (species typical of man-made materials such as LiI, CuI, ZnI, AgI, SnI, CrO, AlH, AlCl, and other elements imported from VALD). Elements common to both (Al, Ti, Fe, Ni, ...) are under Meteor.
 - Checked species are included in the calculation.
 - Double-click the **Density [m^-3]** column to edit the number density (e.g. `1.5e18`).
 - Double-click the **Color** column to choose the species' plot colour. Back to the automatic colour: right-click → "Reset to auto color", the Delete key, or the **Auto colors** button. Colours are remembered across sessions.
 - **Select all** / **Clear** check or uncheck every species.
-- Editing checks or densities by hand switches the preset box to **Custom**.
+- Editing checks or densities by hand clears all preset check boxes (Custom).
 
 <a id="sec-4-1"></a>
 
 ### 4.1 Presets
 
-The Preset box sets a representative composition and temperature (the same value for all five temperatures) in one step.
+The Presets check boxes set a representative composition and temperature (the same value for all five temperatures) in one step. Checking several presets combines their compositions (e.g. Meteor ablation 4500K + Air plasma 10000K): densities of species present in more than one preset are added, and the temperature is that of the preset checked last (after unchecking one, that of the last remaining preset in the list). The temperature used is shown in the status bar.
 
 **Table 4.** Presets
 
@@ -231,9 +233,9 @@ The Preset box sets a representative composition and temperature (the same value
 | Air plasma 10000K | 10000 K | equilibrium air of sample1.ctl: NI 5.511e23, OI 1.476e23, NII 1.462e22, OII 2.534e21, N2 1.976e21, NO+ 6.15e19, NO 5.875e19, N2+ 2.723e19, O2 8.927e17, O2+ 8.847e16 |
 | Debris ablation 4000K | 4000 K | NaI 1e19, MgI 5e18, FeI 5e18, AlI 2e18, TiI 1e18, NiI 1e18, CuI 1e18, MgO 5e17, AlO 2e17, TiO 1e17, FeO 1e17 |
 | Meteor ablation 4500K | 4500 K | CI-chondritic ratios scaled to Si = 2e19: SiI 2e19, MgI 2.1e19, FeI 1.8e19, AlI 1.7e18, NaI 1.1e18, NiI 1e18, CaI 6e17, CaII 6e17, CrI 2.6e17, MnI 1.9e17, KI 7.4e16, TiI 4.8e16 |
-| Custom | — | manual settings (no preset applied) |
+| (none checked = Custom) | — | manual settings (no preset applied); unchecking all presets leaves the current composition as it is |
 
-> Preset compositions are representative values; set the densities for your own conditions in real analyses.
+> Preset compositions are representative values; set the densities for your own conditions in real analyses. A combination still has one temperature, so the Air plasma 10000K composition (equilibrium at 10000 K) is no longer an equilibrium composition when used at a lower temperature.
 
 <a id="sec-5"></a>
 
@@ -359,7 +361,30 @@ N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r
 
 <p align="center"><b>Figure 8.</b> Saha ionization balance dialog (4500 K, Ne = 10²⁰ m⁻³)</p>
 
-> The partition functions are the ones used for the populations (level sums of the .dat file; Qe tables for Tex ≥ 5000 K). The truncated level lists make U too small for open-d-shell atoms (Cr, Mn, Fe, ...). Ionization beyond the highest stage in the list is neglected. Recompute after changing the temperatures (densities are not updated automatically).
+> The partition functions are the ones used for the populations (level sums of the .dat file; Qe tables for Tex ≥ 5000 K). The hand-memorised species (AlI, CuI, NaI, KI, LiI, CaII, MgII, SiII) have truncated level lists; for the species built from all NIST levels (Chapter 14) U equals the NIST partition function. Ionization beyond the highest stage in the list is neglected. Recompute after changing the temperatures (densities are not updated automatically).
+
+<a id="sec-6-5"></a>
+
+### 6.5 Electron density from the neutral atoms
+
+Tools → Electron density from neutrals... estimates the electron density Ne from the number densities of the checked neutral atoms and the temperature. It follows Sect. 3.4 (Eqs. 31–33) of Borovička (1993, A&A 279, 627) and is meant for correcting for ionization when a spectrum fit has given the densities of the neutral atoms. It is the inverse of the Saha balance of Section 6.4 (where the element totals are known).
+
+```text
+n_j / n_j⁺ = Ne · Ω_j(T),   Ω_j(T) = U_j / (2 U_j⁺) · (h² / 2π m k T)^(3/2) · exp(χ_j / kT)     (Saha)
+Ne = Σ_j n_j⁺                                                                        (charge neutrality)
+Ne = √( Σ_j n_j / Ω_j(T) )
+```
+
+1. Check the neutral atoms (FeI, MgI, NaI, ...) in the species panel, set their densities, and set the temperatures in the parameter panel. The partition functions U use Tex, the Saha factor uses Tel.
+2. Open Tools → Electron density from neutrals...: Ne is shown together with the singly-ionized density, the ionized fraction and the share of Ne of every element. The Density column can be edited; **Compute** recalculates.
+3. **Extra electrons** is the electron density from donors that are not in the table (then Ne·(Ne − extra) = Σ n/Ω). 0 gives Borovička's Eq. 33.
+4. **Apply** checks the ions (FeII, ...) in the species panel and sets their densities (with **Check the ions ...** on). **Use this Ne for the spectrum** overrides the Ne of the spectrum calculation with this value.
+
+<p align="center"><img src="images/17_ne_dialog.png" width="440" alt="Electron density from neutrals dialog (neutral atoms of Meteor ablation 4500K)"></p>
+
+<p align="center"><b>Figure 9.</b> Electron density from neutrals dialog (neutral atoms of Meteor ablation 4500K)</p>
+
+> LTE and "neutral + singly ionized atoms only" are assumed (for the meteor main spectrum below about 5000 K; at 10000 K doubly ionized Ca and Ti are neglected and Ne is too small). Every element that supplies many electrons (Na, K, Ca, Mg, Fe, Al, ...) must be in the table; otherwise Ne is a lower limit. A neutral atom without an ion .dat file (e.g. CuI) is treated as supplying no electrons, and this is reported. The input is number densities; the conversion from column densities (the geometric model of Eqs. 27–30 of the paper) is not included. Verification: with the composition of the paper's point 13F (T = 4390 K), Ne = 1.79×10¹⁹ m⁻³ (paper: 2.14×10¹⁹) and the neutral ratios agree with its Table 6 to within 12 %.
 
 <a id="sec-7"></a>
 
@@ -367,7 +392,7 @@ N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r
 
 <p align="center"><img src="images/09_menu_0_File.png" width="300" alt="File menu"></p>
 
-<p align="center"><b>Figure 9.</b> File menu</p>
+<p align="center"><b>Figure 10.</b> File menu</p>
 
 **Table 8.** Menu items
 
@@ -380,7 +405,8 @@ N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r
 | File | Fit observed spectrum (parameter search)... | Fit an observed spectrum (Chapter 9) |
 | Tools | Import VALD line list... | Convert a VALD extract to a .dat file (Chapter 10) |
 | Tools | Saha ionization balance... | Set ionization-stage densities by the Saha equation (Section 6.4) |
-| Tools | Clear Ne override | Remove the Ne override set in the Saha dialog (Section 6.4) |
+| Tools | Electron density from neutrals... | Estimate Ne from the neutral-atom densities and the temperature; set the ion densities (Section 6.5) |
+| Tools | Clear Ne override | Remove the Ne override set in the Saha or electron-density dialog (Sections 6.4, 6.5) |
 | Tools | Rescan databases | Rescan the database directories and refresh the species list |
 | Help | About | Version, credits and units |
 
@@ -403,7 +429,7 @@ With a .csv suffix the file is comma-separated with one header line; otherwise i
 
 <p align="center"><img src="images/12_about.png" width="440" alt="About dialog (credits and units)"></p>
 
-<p align="center"><b>Figure 10.</b> About dialog (credits and units)</p>
+<p align="center"><b>Figure 11.</b> About dialog (credits and units)</p>
 
 <a id="sec-8"></a>
 
@@ -413,7 +439,7 @@ File → Temperature sweep → CSV... keeps every other main-window parameter fi
 
 <p align="center"><img src="images/10_sweep_equilibrium.png" width="520" alt="Temperature-sweep dialog (equilibrium mode)"></p>
 
-<p align="center"><b>Figure 11.</b> Temperature-sweep dialog (equilibrium mode)</p>
+<p align="center"><b>Figure 12.</b> Temperature-sweep dialog (equilibrium mode)</p>
 
 - **Equilibrium**: one temperature T swept by start / end / step and applied to all five components (default for atoms).
 - **Multi-temperature**: each of Ttr, Trot, Tvib, Tex, Tel is fixed or swept. Swept components are combined as **Grid** (all combinations) or **Linked** (advanced together; needs equal numbers of points). Default for molecules: Trot + Tvib linked.
@@ -422,7 +448,7 @@ File → Temperature sweep → CSV... keeps every other main-window parameter fi
 
 <p align="center"><img src="images/11_sweep_multi.png" width="520" alt="Temperature-sweep dialog (multi-temperature mode)"></p>
 
-<p align="center"><b>Figure 12.</b> Temperature-sweep dialog (multi-temperature mode)</p>
+<p align="center"><b>Figure 13.</b> Temperature-sweep dialog (multi-temperature mode)</p>
 
 The CSV starts with `#` metadata lines, followed by `wavelength_A` and one column per temperature set (e.g. `T=5000K`, `Trot=3000K Tvib=4000K`). Read it with pandas as follows.
 
@@ -439,7 +465,7 @@ File → Fit observed spectrum... opens the fit window. It loads an observed spe
 
 <p align="center"><img src="images/13_fit_setup.png" width="640" alt="Fit window: loading the observation and setting up the search"></p>
 
-<p align="center"><b>Figure 13.</b> Fit window: loading the observation and setting up the search</p>
+<p align="center"><b>Figure 14.</b> Fit window: loading the observation and setting up the search</p>
 
 <a id="sec-9-1"></a>
 
@@ -471,15 +497,15 @@ File → Fit observed spectrum... opens the fit window. It loads an observed spe
 
 <p align="center"><img src="images/14_fit_result.png" width="640" alt="Fit result: observed (black), model (red), components, residuals and the table of evaluated points"></p>
 
-<p align="center"><b>Figure 14.</b> Fit result: observed (black), model (red), components, residuals and the table of evaluated points</p>
+<p align="center"><b>Figure 15.</b> Fit result: observed (black), model (red), components, residuals and the table of evaluated points</p>
 
-The example in Figure 14 fits a synthetic 5100–5300 Å spectrum (MgI + FeI + NaI, 4300 K, Mg/Fe = 1.33, 2 Å resolution, noise added) with MgI and FeI. It recovers T = 4290 K, Mg/Fe = 1.36 and a resolution of 2.00 Å (the relative RMS of 0.075 is the added noise).
+The example in Figure 15 fits a synthetic 5100–5300 Å spectrum (MgI + FeI + NaI, 4300 K, Mg/Fe = 1.33, 2 Å resolution, noise added) with MgI and FeI. It recovers T = 4290 K, Mg/Fe = 1.36 and a resolution of 2.00 Å (the relative RMS of 0.075 is the added noise).
 
-Selecting a row shows that solution. **Apply to main window** copies its temperatures, densities, pressure FWHM and resolution into the main window, re-runs and overlays the observation (Figure 15). **Save results CSV** stores the parameters and errors of all evaluated points; **Save model CSV** stores observation, model, residual and components of the selected solution on the observed wavelengths.
+Selecting a row shows that solution. **Apply to main window** copies its temperatures, densities, pressure FWHM and resolution into the main window, re-runs and overlays the observation (Figure 16). **Save results CSV** stores the parameters and errors of all evaluated points; **Save model CSV** stores observation, model, residual and components of the selected solution on the observed wavelengths.
 
 <p align="center"><img src="images/15_fit_applied_main.png" width="640" alt="Result of Apply to main window (observed spectrum overlaid)"></p>
 
-<p align="center"><b>Figure 15.</b> Result of Apply to main window (observed spectrum overlaid)</p>
+<p align="center"><b>Figure 16.</b> Result of Apply to main window (observed spectrum overlaid)</p>
 
 > With Observed units = Arbitrary only density ratios are meaningful (shown values are relative). Use an absolutely calibrated observation with Absolute to obtain absolute densities.
 
@@ -487,7 +513,7 @@ Selecting a row shows that solution. **Apply to main window** copies its tempera
 
 ## 10. Importing VALD line lists
 
-Tools → Import VALD line list... converts a VALD3 long-format extract (https://www.astro.uu.se/valdwiki/) into a SPRADIAN atomic .dat file in the Debris/Metal folder (Section 2.3).
+Tools → Import VALD line list... converts a VALD3 long-format extract (https://www.astro.uu.se/valdwiki/) into a SPRADIAN atomic .dat file in the database_debris folder (Section 2.3).
 
 1. Register with VALD and request an Extract Element (long format) for the element/ionisation stage.
 2. Choose the extract (.vald, .txt, .gz) via Import VALD line list....
@@ -558,6 +584,17 @@ res = run_spectrum(names, sah.densities_for(names),
 # sah.ne, sah.ion_fraction["Ca"], sah.densities["CaII"], ...
 ```
 
+The electron density from the neutral-atom densities (Section 6.5) is `electron_density_from_neutrals`; `db_dir` may also be a list of directories.
+
+```text
+from meteorad.saha import electron_density_from_neutrals
+
+r = electron_density_from_neutrals({"FeI": 1.0e19, "MgI": 1.8e19, "NaI": 2.8e16},
+                                   T=4390.0, db_dir="database_debris")
+# r.ne, r.ion_densities["FeII"], r.ion_fraction["Fe"], r.electron_share["Na"],
+# r.totals["Fe"], r.skipped, r.warnings
+```
+
 **Table 12.** Core modules
 
 | Module | Content (C counterpart) |
@@ -571,7 +608,7 @@ res = run_spectrum(names, sah.densities_for(names),
 | spectrum.py | assembly, blackbody, slab intensity, output (Gene_Spec, Gene_Blck, Self-abs) |
 | runner.py | run_spectrum(): high-level API (CalSpec main) |
 | vald.py | VALD long format → .dat conversion |
-| saha.py | Saha ionization balance saha_densities() (METEORAD addition, not in C) |
+| saha.py | Saha ionization balance saha_densities(), electron density from neutrals electron_density_from_neutrals() (METEORAD additions, not in C) |
 
 <a id="sec-13"></a>
 
@@ -629,17 +666,22 @@ Resolution FWHM convolves with a unit-area Gaussian, conserving integrated flux.
 | Group | Species |
 |---|---|
 | Air/Combustion (original DATAPAC, 23) | ArI, C2, CH, CI, CII, CN, CO, CO+, H2, HI, HII, N2, N2+, NH, NI, NII, NO, NO+, O2, O2+, OH, OI, OII |
-| Debris/Metal — neutral atoms (13) | NaI, MgI, AlI, SiI, KI, CaI, TiI, CrI, MnI, FeI, NiI, CuI, LiI |
-| Debris/Metal — ions (3) | CaII, MgII, SiII |
-| Debris/Metal — metal oxides (4) | MgO (B–X green), AlO (B–X blue-green), TiO (A–X γ, B–X γ′, C–X α), FeO (orange, envelope approx.) |
+| database_debris — neutral atoms (20) | LiI, NaI, MgI, AlI, SiI, KI, CaI, TiI, VI, CrI, MnI, FeI, CoI, NiI, CuI, ZnI, SrI, AgI, SnI, BaI |
+| database_debris — ions (16) | LiII, NaII, MgII, AlII, SiII, KII, CaII, TiII, VII, CrII, MnII, FeII, CoII, NiII, SrII, BaII |
+| database_debris — diatomic molecules (9) | MgO (B–X green), AlO (B–X blue-green), TiO (A–X γ, B–X γ′, C–X α), FeO (orange, envelope approx.), CaO (A–X near-infrared, B–X, C–X, orange arc bands as an envelope), SiO (A–X ultraviolet), CrO (B–X orange-red, envelope approx.), AlH (A–X 424–435 nm), AlCl (A–X ultraviolet) |
+
+Among the atoms and ions, LiI, NaI, AlI, KI, CuI, MgII, SiII and CaII are hand-memorised files with a few leading lines (4–11). The other 28 species are built from all NIST ASD levels below the first ionization limit and the allowed NIST lines with an A value at 200–1100 nm (air wavelengths); transitions without a NIST A value are filled in from Kurucz log gf (`tools/make_nist_atomic_dat.py`; TiI covers 300–1000 nm). Line counts, e.g.: FeI 3425, FeII 4995, VI 3755, CrII 3474, TiII 1693, CoI 1378, CrI 1309. NaII, KII and LiII have no useful optical lines and are included mainly as partners for the Saha ionization balance (Section 6.4).
 
 <a id="sec-14-1"></a>
 
 ### 14.1 Approximations for the added molecules
 
 - **AlO B²Σ⁺–X²Σ⁺**: the ²Σ states are written as S = 0 singlets (spin splitting ~0.007 cm⁻¹ is far below the grid). The common factor cancels in the partition function.
-- **TiO**: X³Δ / A³Φ / C³Δ are approximated as ³Π (coupling case 23). The degeneracy 6 is correct, but the three γ-system heads (7054/7089/7126 Å) merge into one (~7125 Å).
+- **TiO**: X³Δ / A³Φ / C³Δ are approximated as ³Π (coupling case 23). The degeneracy 6 is correct, but the three γ-system heads (7054/7089/7126 Å) merge into one at the middle sub-band ((0,0) origin 7094 Å).
 - **FeO orange system**: a dense multi-state problem represented as one upper state (Te = 17050 cm⁻¹, S = 2, Λ = 0) giving the band envelope only; not for rotational-line work.
+- **CaO**: A¹Σ⁺–X¹Σ⁺, B¹Π–X¹Σ⁺ and C¹Σ⁺–X¹Σ⁺ are written with their true symmetries (Huber–Herzberg constants). Only ΔG(1/2) is known for B, so its we and wexe are assumed. The orange arc bands (600–635 nm) are an unanalysed multi-state system, represented as an envelope by a fictitious ¹Σ state 16200 cm⁻¹ above A′¹Π. A_total: measured lifetimes for A–X and the orange bands (149 ns, 27.8 ns; Plane & Nien 1991), assumed values for B–X and C–X (1e7, 3e7 s⁻¹). The green bands are not included.
+- **CrO B⁵Π–X⁵Π**: singlet-type rotational structure with S = 2, Λ = 1 (the degeneracy 10 is correct); the five spin components are merged into an envelope. A_total = 5e6 s⁻¹ is an assumed value (absolute intensities are not reliable).
+- **SiO A¹Π–X¹Σ⁺, AlH A¹Π–X¹Σ⁺, AlCl A¹Π–X¹Σ⁺**: written with their true symmetries. The SiO A_total follows the theoretical lifetime 28.5 ns (ExoMol); the only measurement, 9.6 ns, would give three times more. The AlH A state has v = 0, 1 only, limited to N ≤ 20 / 7 to mimic rotational predissociation. The AlCl constants are those of Al³⁵Cl.
 - **Franck–Condon factors**: Morse potentials built from (we, wexe, Be) and the reduced mass; vibrational overlaps computed numerically (revised 2026-10-23).
 
 **Table 15.** Morse-oscillator Franck–Condon factors (A_total is the v′=0 total rate 1/τ₀)
@@ -648,15 +690,23 @@ Resolution FWHM convolves with a unit-area Gaussian, conserving integrated flux.
 |---|---|---|---|---|---|
 | MgO B–X | 1.732 / 1.743 | 0.985 | 0.015 | 0.015 | 2.0e7 |
 | AlO B–X | 1.667 / 1.618 | 0.730 | 0.238 | 0.225 | 1.0e7 |
-| TiO γ (A–X) | 1.665 / 1.620 | 0.721 | 0.236 | 0.235 | 5.0e6 |
-| TiO α (C–X) | 1.694 / 1.620 | 0.407 | 0.378 | 0.348 | 1.6e7 |
+| TiO γ (A–X) | 1.665 / 1.620 | 0.721 | 0.236 | 0.235 | 9.7e6 |
+| TiO α (C–X) | 1.694 / 1.620 | 0.407 | 0.378 | 0.348 | 3.1e7 |
 | FeO orange | 1.630 / 1.620 | 0.984 | 0.016 | 0.015 | 3.0e6 |
+| CaO A–X | 1.907 / 1.822 | 0.434 | 0.411 | 0.326 | 6.7e6 |
+| CaO B–X | 1.950 / 1.822 | 0.172 | 0.331 | 0.284 | 1.0e7 (assumed) |
+| CaO C–X | 1.989 / 1.822 | 0.048 | 0.170 | 0.124 | 3.0e7 (assumed) |
+| CaO orange | 2.067 / 2.093 | 0.941 | 0.055 | 0.058 | 3.6e7 |
+| SiO A–X | 1.621 / 1.510 | 0.142 | 0.277 | 0.261 | 3.5e7 |
+| CrO B–X | 1.703 / 1.615 | 0.302 | 0.401 | 0.311 | 5.0e6 (assumed) |
+| AlH A–X | 1.648 / 1.648 | 0.958 | 0.031 | 0.041 | 1.5e7 |
+| AlCl A–X | 2.067 / 2.130 | 0.684 | 0.225 | 0.294 | 1.56e8 |
 
 <a id="sec-14-2"></a>
 
 ### 14.2 Adding species
 
-- Atoms: VALD import (Chapter 10) or `tools/make_atomic_dat.py` (NIST levels and A values).
+- Atoms: VALD import (Chapter 10), `tools/make_nist_atomic_dat.py` (built automatically from NIST ASD and Kurucz; add one row to its SPECIES table), or `tools/make_atomic_dat.py` (levels and A values written by hand).
 - Diatomics: add state constants and band systems to `tools/make_diatomic_dat.py`; FCFs are computed automatically.
 - Afterwards check loading and peak positions with `tools/test_debris.py`. Format details: docs/DATA_FORMATS_ja.md and notes/PORT_NOTES_database.md.
 
@@ -665,10 +715,10 @@ Resolution FWHM convolves with a unit-area Gaussian, conserving integrated flux.
 ## 15. Limitations and cautions
 
 - The added debris-atom .dat files have no bound-free / free-bound blocks, so recombination continua of these species are absent (free-free uses the rough effective charge EffC2 = 0.01).
-- Some A values come from log gf conversions with ±10–30 % uncertainty; replace them via VALD import for precise work.
-- The Qe partition-function tables cover 1500–7000 K; above ~8000 K level truncation makes them incomplete. For Tex ≥ 5000 K the Qe tables are used. For open-d-shell atoms the truncation matters below 8000 K too (U_dat/U_NIST: Cr I 0.73 / 0.36, Mn I 0.94 / 0.52, Fe I 0.98 / 0.80, Ni I 0.99 / 0.90 at 5000 / 9000 K).
+- The hand-memorised species (LiI, NaI, AlI, KI, CuI, MgII, SiII, CaII) have A values uncertain by ±10–30 %. For the NIST + Kurucz species, lines taken from Kurucz log gf are calculated values and less certain for weak lines. Levels above the ionization limit and the lines from them are not included.
+- The Qe tables of the hand-memorised species cover 1500–7000 K; above ~8000 K level truncation makes them incomplete. For the species built from all NIST levels the partition function equals the NIST value (e.g. Fe I 27.79 / 50.40, Cr I 10.39 / 25.83 at 5000 / 9000 K). For Tex ≥ 5000 K the Qe tables are used.
 - Ion densities are used as given; no ionization balance is applied automatically. Use the Saha ionization balance (Section 6.4) when needed.
-- TiO and FeO carry the approximations of Section 14.1. Morse FCFs are good to a few % at low v; errors can be larger at high v′.
+- TiO, FeO, CaO and CrO carry the approximations of Section 14.1. Morse FCFs are good to a few % at low v; errors can be larger at high v′.
 - The triatomic path (CO₂ etc.) is not implemented.
 - The Python edition does not include the C version's 1D/2D radiative-transfer tools (Ray-integ, 1D-slab, S-cap, 3D-integ); only the uniform slab is available.
 
@@ -697,8 +747,9 @@ Fujita and Abe (1997) is the original SPRADIAN theory paper and Fujita and Abe (
 - JAXA Aeronautical Technology Directorate, Advancement of the thermal-aerodynamic evaluation system for atmospheric entry vehicles (SPRADIAN; in Japanese): https://www.aero.jaxa.jp/research/basic/aerodynamic/aerothermodynamic/
 - SPRADIAN-1.5 User's Manual (2.3rd ed., Japanese), ISAS/JAXA
 - S. Abe, N. Ebizuka, H. Yano, J. Watanabe and J. Borovička, Detection of the N₂⁺ First Negative System in a Bright Leonid Fireball, ApJ 618, L141 (2005)
-- Huber, K. P. and Herzberg, G., Constants of Diatomic Molecules
-- NIST Atomic Spectra Database; VALD3 (https://www.astro.uu.se/valdwiki/)
+- J. Borovička, A fireball spectrum analysis, A&A 279, 627 (1993) — electron density from the neutral atoms (Section 6.5)
+- Huber, K. P. and Herzberg, G., Constants of Diatomic Molecules (NIST Chemistry WebBook)
+- NIST Atomic Spectra Database; atomic line lists of R. L. Kurucz (http://kurucz.harvard.edu/atoms/); VALD3 (https://www.astro.uu.se/valdwiki/)
 
 <a id="sec-16-3"></a>
 

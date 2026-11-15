@@ -26,6 +26,9 @@ manuals only** — the source code is not public.
 
 Web version / Web 版: https://nu-sx.github.io/METEORAD/
 
+**Update 2026-11-16**: electron density from the neutral-atom densities and temperature (Tools → Electron density from neutrals, after Borovička 1993; manual §6.5); species groups Air/Combustion, Meteor, Debris with combinable presets; database extended to 45 meteor/debris species — Fe I, Cr I, Ni I, Mn I, Mg I, Ca I, Si I rebuilt from NIST ASD + Kurucz; new ions Fe II, Ti II, Cr II, Al II, Sr II, Ba II (and Na II, K II, Li II, V II, Mn II, Co II, Ni II for the Saha balance); new atoms Co I, V I, Sr I, Ba I, Zn I, Sn I, Ag I; new molecules CaO, SiO, CrO, AlH, AlCl (manual §14).
+**更新 2026-11-16**: 中性原子の密度と温度から電子密度を推定する機能（Tools → Electron density from neutrals、Borovička 1993 の方法、マニュアル 6.5 節）を追加。化学種の分類を Air/Combustion・Meteor・Debris に分け、プリセットを複数選択可能に。データベースを流星・デブリ種 45 種に拡張。Fe I, Cr I, Ni I, Mn I, Mg I, Ca I, Si I を NIST ASD + Kurucz から再作成し、イオン Fe II, Ti II, Cr II, Al II, Sr II, Ba II（Saha 用に Na II, K II, Li II, V II, Mn II, Co II, Ni II）、原子 Co I, V I, Sr I, Ba I, Zn I, Sn I, Ag I、分子 CaO, SiO, CrO, AlH, AlCl を追加（マニュアル 14 章）。
+
 **Update 2026-11-05**: Saha ionization balance (Tools → Saha ionization balance, `meteorad.saha`; manual §6.4); TiO B–X γ′ system added, Ti I line list from NIST/Kurucz.
 **更新 2026-11-05**: Saha 電離平衡（Tools → Saha ionization balance、`meteorad.saha`、マニュアル 6.4 節）を追加。TiO の B–X γ′ 系を追加し、Ti I の線リストを NIST/Kurucz に更新。
 

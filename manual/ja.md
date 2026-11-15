@@ -4,7 +4,7 @@
 
 <p align="center"><b>METEOr RADiation spectra</b><br>仕様書・ユーザーマニュアル</p>
 
-<p align="center">SPRADIAN-1.8 (JAXA) の Python 版 — バージョン 1.0<br>原典: SPRADIAN-1.8 — 藤田和央・安部隆士 (ISAS/JAXA)<br>追加原子・分子データベースおよび GUI: 阿部新助 (Shinsuke Abe)<br>文書日付: 2026-11-05</p>
+<p align="center">SPRADIAN-1.8 (JAXA) の Python 版 — バージョン 1.0<br>原典: SPRADIAN-1.8 — 藤田和央・安部隆士 (ISAS/JAXA)<br>追加原子・分子データベースおよび GUI: 阿部新助 (Shinsuke Abe)<br>文書日付: 2026-11-16</p>
 
 > **使用時は Fujita & Abe (1997)、Fujita & Abe (2003) および Abe et al. (2026) の引用が必須です (1.4 節)。**
 
@@ -32,6 +32,7 @@
   - [6.2 プロットパネルの機能](#sec-6-2)
   - [6.3 スラブ強度](#sec-6-3)
   - [6.4 Saha 電離平衡](#sec-6-4)
+  - [6.5 中性原子からの電子密度の推定](#sec-6-5)
 - [7. メニュー](#sec-7)
   - [7.1 スペクトルの保存形式](#sec-7-1)
 - [8. 温度スイープ](#sec-8)
@@ -84,6 +85,7 @@ Python 化・追加原子/分子・GUI・温度スイープ・観測スペクト
 - 一様スラブの視線積分強度 (自己吸収込み) と Tel の黒体放射
 - 装置関数 (ガウス) による畳み込み、化学種ごとの色分け表示
 - Saha 式による電離平衡 (元素の全密度を中性・イオンに配分、Ne 固定または電荷中性で自己無撞着)
+- 中性原子の密度と温度からの電子密度の推定 (Borovička 1993 の方法)
 - 温度スイープの一括計算と CSV 出力
 - 観測スペクトルへのフィット (グリッド探索 + 線形最小二乗 + Nelder–Mead 精密化)
 - VALD 線リストの取込み、SPRADIAN-1.8 の制御ファイル (.ctl) の読込み
@@ -157,9 +159,9 @@ METEORAD は Windows 用インストーラと macOS 用ディスクイメージ 
 | グループ | 場所 | 内容 |
 |---|---|---|
 | Air/Combustion | アプリ内 (読み取り専用) | 原典 SPRADIAN DATAPAC の空気・燃焼系 23 種 |
-| Debris/Metal | Windows: `%APPDATA%\METEORAD\database_debris`<br>macOS: `~/Library/Application Support/METEORAD/database_debris` | デブリ・金属種 20 種と VALD 取込み (10 章) で作成した種 |
+| Meteor, Debris | Windows: `%APPDATA%\METEORAD\database_debris`<br>macOS: `~/Library/Application Support/METEORAD/database_debris` | 流星・デブリ種 45 種と VALD 取込み (10 章) で作成した種 (1 つのフォルダを Meteor と Debris の 2 グループに分けて表示。4 章) |
 
-> Debris/Metal 用フォルダは初回起動時に自動で作成され、同梱のデータベースがコピーされます。アプリを新しい版に更新すると、同梱ファイルと同じ名前のファイルは新しい版で上書きされます (それ以外のファイルは残ります)。同梱種を VALD 取込みで置き換えた場合などは、別名で保存するかバックアップを取ってください。フォルダの内容を変更したあとは **Tools → Rescan databases** で一覧を更新できます。
+> database_debris フォルダは初回起動時に自動で作成され、同梱のデータベースがコピーされます。アプリを新しい版に更新すると、同梱ファイルと同じ名前のファイルは新しい版で上書きされます (それ以外のファイルは残ります)。同梱種を VALD 取込みで置き換えた場合などは、別名で保存するかバックアップを取ってください。フォルダの内容を変更したあとは **Tools → Rescan databases** で一覧を更新できます。
 
 <a id="sec-2-4"></a>
 
@@ -167,7 +169,7 @@ METEORAD は Windows 用インストーラと macOS 用ディスクイメージ 
 
 - Windows: **設定 → アプリ → インストールされているアプリ** で METEORAD を選び **アンインストール** します。
 - macOS: アプリケーションフォルダの METEORAD.app をゴミ箱に入れます。
-- どちらの場合もユーザーデータ (上表の Debris/Metal フォルダと設定) は残ります。不要なら `METEORAD` フォルダごと削除してください。
+- どちらの場合もユーザーデータ (上表の database_debris フォルダと設定) は残ります。不要なら `METEORAD` フォルダごと削除してください。
 
 <a id="sec-3"></a>
 
@@ -211,18 +213,18 @@ METEORAD は Windows 用インストーラと macOS 用ディスクイメージ 
 
 <p align="center"><b>図 2.</b> 化学種パネル (Meteor ablation 4500K プリセット適用後)</p>
 
-- 化学種は **Air/Combustion** (原典 DATAPAC) と **Debris/Metal** (database_debris) の 2 グループに分かれて表示されます。
+- 化学種は **Air/Combustion** (原典 DATAPAC)、**Meteor**、**Debris** の 3 グループに分かれて表示されます。Meteor と Debris はどちらも database_debris フォルダの種で、各化学種はどちらか一方に入ります。**Meteor** は流星体を構成する元素 (Na, Mg, Al, Si, P, S, K, Ca, Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Sr, Ba) の原子・イオンとその酸化物 (MgO, AlO, SiO, CaO, TiO, FeO)、**Debris** はそれ以外 (人工物に特有の LiI, CuI, ZnI, AgI, SnI, CrO, AlH, AlCl など、および VALD で取り込んだその他の元素) です。Al, Ti, Fe, Ni など両方に共通する元素は Meteor 側にあります。
 - チェックした化学種が計算に含まれます。
 - **Density [m^-3]** 列をダブルクリックすると数密度を編集できます (例: `1.5e18`)。
 - **Color** 列をダブルクリックすると、その化学種のプロット色を選べます。自動色に戻すには右クリック →「Reset to auto color」、Delete キー、または **Auto colors** ボタンを使います。色の選択はセッションをまたいで保存されます。
 - **Select all** / **Clear** で全化学種の選択・解除ができます。
-- チェックや密度を手で変更すると、プリセット表示は自動的に **Custom** になります。
+- チェックや密度を手で変更すると、プリセットのチェックは自動的にすべて外れます (Custom)。
 
 <a id="sec-4-1"></a>
 
 ### 4.1 プリセット
 
-Preset ボックスで代表的な組成と温度 (5 温度すべてに同じ値) を一括設定できます。
+Presets のチェックボックスで代表的な組成と温度 (5 温度すべてに同じ値) を一括設定できます。複数のプリセットを同時にチェックすると組成が合成されます (例: Meteor ablation 4500K + Air plasma 10000K)。複数のプリセットに含まれる化学種は数密度を加算し、温度は最後にチェックしたプリセットの値になります (チェックを外したときは、残ったプリセットのうち一覧で最後のものの値)。採用した温度はステータスバーに表示されます。
 
 **表 4.** プリセット
 
@@ -231,9 +233,9 @@ Preset ボックスで代表的な組成と温度 (5 温度すべてに同じ値
 | Air plasma 10000K | 10000 K | sample1.ctl の平衡空気: NI 5.511e23, OI 1.476e23, NII 1.462e22, OII 2.534e21, N2 1.976e21, NO+ 6.15e19, NO 5.875e19, N2+ 2.723e19, O2 8.927e17, O2+ 8.847e16 |
 | Debris ablation 4000K | 4000 K | NaI 1e19, MgI 5e18, FeI 5e18, AlI 2e18, TiI 1e18, NiI 1e18, CuI 1e18, MgO 5e17, AlO 2e17, TiO 1e17, FeO 1e17 |
 | Meteor ablation 4500K | 4500 K | CI コンドライト元素比を Si = 2e19 に規格化: SiI 2e19, MgI 2.1e19, FeI 1.8e19, AlI 1.7e18, NaI 1.1e18, NiI 1e18, CaI 6e17, CaII 6e17, CrI 2.6e17, MnI 1.9e17, KI 7.4e16, TiI 4.8e16 |
-| Custom | — | 手動設定 (プリセットを適用しない) |
+| (チェックなし = Custom) | — | 手動設定 (プリセットを適用しない)。チェックをすべて外しても現在の組成はそのまま残ります。 |
 
-> プリセットの組成は代表値です。実際の解析では観測条件に合わせて数密度を設定してください。
+> プリセットの組成は代表値です。実際の解析では観測条件に合わせて数密度を設定してください。プリセットを合成しても温度は 1 つなので、Air plasma 10000K の組成 (10000 K の平衡組成) を低い温度で使うと平衡組成ではなくなります。
 
 <a id="sec-5"></a>
 
@@ -359,7 +361,30 @@ N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r
 
 <p align="center"><b>図 8.</b> Saha ionization balance ダイアログ (4500 K, Ne = 10²⁰ m⁻³)</p>
 
-> 分配関数は占有数計算と同じもの (.dat の準位和、Tex ≥ 5000 K で Qe 表) を使います。準位リストが打ち切られているため、d 殻の開いた原子 (Cr, Mn, Fe など) では U が小さめになります。リストにある最高の電離段より上への電離は無視します。温度を変えたあとは再計算してください (密度は自動では更新されません)。
+> 分配関数は占有数計算と同じもの (.dat の準位和、Tex ≥ 5000 K で Qe 表) を使います。記憶値から作成した種 (AlI, CuI, NaI, KI, LiI, CaII, MgII, SiII) は準位リストが打ち切られていますが、NIST の全準位から作成した種 (14 章) の U は NIST の分配関数と一致します。リストにある最高の電離段より上への電離は無視します。温度を変えたあとは再計算してください (密度は自動では更新されません)。
+
+<a id="sec-6-5"></a>
+
+### 6.5 中性原子からの電子密度の推定
+
+Tools → Electron density from neutrals... は、チェックした中性原子の数密度と温度から電子密度 Ne を推定します。Borovička (1993, A&A 279, 627) の 3.4 節 (式 31–33) の方法で、スペクトルのフィットで得た中性原子の密度から電離の補正を行う場合に使います。6.4 節の Saha 電離平衡 (元素の全密度が既知) の逆問題にあたります。
+
+```text
+n_j / n_j⁺ = Ne · Ω_j(T),   Ω_j(T) = U_j / (2 U_j⁺) · (h² / 2π m k T)^(3/2) · exp(χ_j / kT)     (Saha)
+Ne = Σ_j n_j⁺                                                                        (charge neutrality)
+Ne = √( Σ_j n_j / Ω_j(T) )
+```
+
+1. 化学種パネルで中性原子 (FeI, MgI, NaI など) をチェックして数密度を設定し、パラメータパネルで温度を設定します。分配関数 U には Tex、Saha 因子には Tel を使います。
+2. Tools → Electron density from neutrals... を開くと、Ne と各元素の 1 価イオン密度・電離度・Ne への寄与率が表示されます。表の Density 列は編集でき、**Compute** で再計算します。
+3. **Extra electrons** には表に無い供給源からの電子密度を指定できます (このとき Ne·(Ne − extra) = Σ n/Ω)。0 が Borovička の式 33 です。
+4. **Apply** で、イオン (FeII など) を化学種パネルでチェックして密度を設定します (**Check the ions ...** をオンの場合)。**Use this Ne for the spectrum** をチェックすると、この Ne でスペクトル計算の Ne を上書きします。
+
+<p align="center"><img src="images/17_ne_dialog.png" width="440" alt="Electron density from neutrals ダイアログ (Meteor ablation 4500K の中性原子)"></p>
+
+<p align="center"><b>図 9.</b> Electron density from neutrals ダイアログ (Meteor ablation 4500K の中性原子)</p>
+
+> LTE と「中性 + 1 価イオンのみ」を仮定します (約 5000 K 以下の流星主スペクトル向け。10000 K では Ca や Ti の 2 価イオンを無視するため Ne は過小)。電子を多く供給する元素 (Na, K, Ca, Mg, Fe, Al など) がすべて表に入っている必要があり、欠けていると Ne は下限になります。対応するイオンの .dat が無い中性原子 (CuI など) は電子を供給しないものとして扱い、その旨を表示します。数密度を入力とするので、柱密度からの換算 (同論文の式 27–30 の幾何モデル) は含みません。検証: 同論文の 13F 点 (T = 4390 K) の組成で Ne = 1.79×10¹⁹ m⁻³ (論文 2.14×10¹⁹)、中性原子比は表 6 と 12 % 以内で一致します。
 
 <a id="sec-7"></a>
 
@@ -367,7 +392,7 @@ N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r
 
 <p align="center"><img src="images/09_menu_0_File.png" width="300" alt="File メニュー"></p>
 
-<p align="center"><b>図 9.</b> File メニュー</p>
+<p align="center"><b>図 10.</b> File メニュー</p>
 
 **表 8.** メニュー項目
 
@@ -380,7 +405,8 @@ N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r
 | File | Fit observed spectrum (parameter search)... | 観測スペクトルへのフィット (第 9 章) |
 | Tools | Import VALD line list... | VALD 抽出ファイルを .dat に変換して取込み (第 10 章) |
 | Tools | Saha ionization balance... | 電離段の密度を Saha 式で決定し化学種パネルに反映 (6.4 節) |
-| Tools | Clear Ne override | Saha ダイアログで設定した Ne の上書きを解除 (6.4 節) |
+| Tools | Electron density from neutrals... | 中性原子の密度と温度から電子密度を推定し、イオン密度を化学種パネルに反映 (6.5 節) |
+| Tools | Clear Ne override | Saha / 電子密度ダイアログで設定した Ne の上書きを解除 (6.4, 6.5 節) |
 | Tools | Rescan databases | データベースディレクトリを再走査して種の一覧を更新 |
 | Help | About | バージョン・クレジット・単位系の表示 |
 
@@ -403,7 +429,7 @@ N(r+1) Ne / N(r) = 2 U(r+1)/U(r) · (2π mₑ k Tel / h²)^{3/2} · exp(−(χ(r
 
 <p align="center"><img src="images/12_about.png" width="440" alt="About ダイアログ (クレジットと単位系)"></p>
 
-<p align="center"><b>図 10.</b> About ダイアログ (クレジットと単位系)</p>
+<p align="center"><b>図 11.</b> About ダイアログ (クレジットと単位系)</p>
 
 <a id="sec-8"></a>
 
@@ -413,7 +439,7 @@ File → Temperature sweep → CSV... は、メインウィンドウの他のパ
 
 <p align="center"><img src="images/10_sweep_equilibrium.png" width="520" alt="温度スイープ ダイアログ (平衡モード)"></p>
 
-<p align="center"><b>図 11.</b> 温度スイープ ダイアログ (平衡モード)</p>
+<p align="center"><b>図 12.</b> 温度スイープ ダイアログ (平衡モード)</p>
 
 - **Equilibrium**: 1 つの温度 T を start / end / step で振り、5 温度すべてに適用します (原子種の既定)。
 - **Multi-temperature**: Ttr, Trot, Tvib, Tex, Tel を個別に固定または掃引します。掃引した温度の組合せは **Grid** (全組合せ) または **Linked** (同じ番号どうしを同時に進める; 点数が等しい必要あり) を選べます。分子種の既定は Trot + Tvib の連動掃引です。
@@ -422,7 +448,7 @@ File → Temperature sweep → CSV... は、メインウィンドウの他のパ
 
 <p align="center"><img src="images/11_sweep_multi.png" width="520" alt="温度スイープ ダイアログ (多温度モード)"></p>
 
-<p align="center"><b>図 12.</b> 温度スイープ ダイアログ (多温度モード)</p>
+<p align="center"><b>図 13.</b> 温度スイープ ダイアログ (多温度モード)</p>
 
 出力 CSV は `#` で始まるメタデータ行の後に、`wavelength_A` と温度セットごとの列 (例: `T=5000K`, `Trot=3000K Tvib=4000K`) が並びます。pandas では次のように読めます。
 
@@ -439,7 +465,7 @@ File → Fit observed spectrum... で開くフィット ウィンドウは、観
 
 <p align="center"><img src="images/13_fit_setup.png" width="640" alt="フィット ウィンドウ: 観測スペクトルの読込みと探索条件の設定"></p>
 
-<p align="center"><b>図 13.</b> フィット ウィンドウ: 観測スペクトルの読込みと探索条件の設定</p>
+<p align="center"><b>図 14.</b> フィット ウィンドウ: 観測スペクトルの読込みと探索条件の設定</p>
 
 <a id="sec-9-1"></a>
 
@@ -471,15 +497,15 @@ File → Fit observed spectrum... で開くフィット ウィンドウは、観
 
 <p align="center"><img src="images/14_fit_result.png" width="640" alt="フィット結果: 観測 (黒)・モデル (赤)・成分・残差と評価点の一覧"></p>
 
-<p align="center"><b>図 14.</b> フィット結果: 観測 (黒)・モデル (赤)・成分・残差と評価点の一覧</p>
+<p align="center"><b>図 15.</b> フィット結果: 観測 (黒)・モデル (赤)・成分・残差と評価点の一覧</p>
 
-図 14 の例は、MgI + FeI + NaI (4300 K, Mg/Fe = 1.33, 分解能 2 Å) から合成しノイズを加えた 5100–5300 Å のスペクトルを、MgI と FeI でフィットしたものです。T = 4290 K、Mg/Fe = 1.36、分解能 2.00 Å が復元されています (相対 RMS 0.075 はノイズ由来)。
+図 15 の例は、MgI + FeI + NaI (4300 K, Mg/Fe = 1.33, 分解能 2 Å) から合成しノイズを加えた 5100–5300 Å のスペクトルを、MgI と FeI でフィットしたものです。T = 4290 K、Mg/Fe = 1.36、分解能 2.00 Å が復元されています (相対 RMS 0.075 はノイズ由来)。
 
-結果表の行を選ぶとその解が表示されます。**Apply to main window** は選択した解の温度・密度・圧力 FWHM・分解能をメインウィンドウに設定して再計算し、観測スペクトルを重ね描きします (図 15)。**Save results CSV** は評価した全点のパラメータと誤差を、**Save model CSV** は選択解の観測・モデル・残差・各成分を観測波長で保存します。
+結果表の行を選ぶとその解が表示されます。**Apply to main window** は選択した解の温度・密度・圧力 FWHM・分解能をメインウィンドウに設定して再計算し、観測スペクトルを重ね描きします (図 16)。**Save results CSV** は評価した全点のパラメータと誤差を、**Save model CSV** は選択解の観測・モデル・残差・各成分を観測波長で保存します。
 
 <p align="center"><img src="images/15_fit_applied_main.png" width="640" alt="Apply to main window の結果 (観測スペクトルを重ね描き)"></p>
 
-<p align="center"><b>図 15.</b> Apply to main window の結果 (観測スペクトルを重ね描き)</p>
+<p align="center"><b>図 16.</b> Apply to main window の結果 (観測スペクトルを重ね描き)</p>
 
 > Observed units が Arbitrary の場合、数密度は比のみが意味を持ちます (表示値は参照密度に対する相対値)。絶対密度を求めるには絶対較正した観測と Absolute を使ってください。
 
@@ -487,7 +513,7 @@ File → Fit observed spectrum... で開くフィット ウィンドウは、観
 
 ## 10. VALD 線リストの取込み
 
-Tools → Import VALD line list... は、VALD3 (https://www.astro.uu.se/valdwiki/) の長形式抽出ファイルを SPRADIAN 形式の原子 .dat に変換し、Debris/Metal 用フォルダ (2.3 節) に保存します。
+Tools → Import VALD line list... は、VALD3 (https://www.astro.uu.se/valdwiki/) の長形式抽出ファイルを SPRADIAN 形式の原子 .dat に変換し、database_debris フォルダ (2.3 節) に保存します。
 
 1. VALD に登録し、対象元素・電離段階の Extract Element (long format) を取得する。
 2. Import VALD line list... で抽出ファイル (.vald, .txt, .gz) を選ぶ。
@@ -558,6 +584,17 @@ res = run_spectrum(names, sah.densities_for(names),
 # sah.ne, sah.ion_fraction["Ca"], sah.densities["CaII"], ...
 ```
 
+中性原子の密度からの電子密度の推定 (6.5 節) は `electron_density_from_neutrals` です。`db_dir` にはディレクトリのリストも渡せます。
+
+```text
+from meteorad.saha import electron_density_from_neutrals
+
+r = electron_density_from_neutrals({"FeI": 1.0e19, "MgI": 1.8e19, "NaI": 2.8e16},
+                                   T=4390.0, db_dir="database_debris")
+# r.ne, r.ion_densities["FeII"], r.ion_fraction["Fe"], r.electron_share["Na"],
+# r.totals["Fe"], r.skipped, r.warnings
+```
+
 **表 12.** 計算コアのモジュール
 
 | モジュール | 内容 (C 版の対応) |
@@ -571,7 +608,7 @@ res = run_spectrum(names, sah.densities_for(names),
 | spectrum.py | 合成・黒体・スラブ強度・保存 (Gene_Spec, Gene_Blck, Self-abs) |
 | runner.py | run_spectrum(): 高水準 API (CalSpec main) |
 | vald.py | VALD 長形式 → .dat 変換 |
-| saha.py | Saha 電離平衡 saha_densities() (METEORAD 追加、C 版に無し) |
+| saha.py | Saha 電離平衡 saha_densities()、中性原子からの電子密度 electron_density_from_neutrals() (METEORAD 追加、C 版に無し) |
 
 <a id="sec-13"></a>
 
@@ -629,17 +666,22 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 | グループ | 化学種 |
 |---|---|
 | Air/Combustion (原典 DATAPAC, 23 種) | ArI, C2, CH, CI, CII, CN, CO, CO+, H2, HI, HII, N2, N2+, NH, NI, NII, NO, NO+, O2, O2+, OH, OI, OII |
-| Debris/Metal — 中性原子 (13) | NaI, MgI, AlI, SiI, KI, CaI, TiI, CrI, MnI, FeI, NiI, CuI, LiI |
-| Debris/Metal — イオン (3) | CaII, MgII, SiII |
-| Debris/Metal — 金属酸化物 (4) | MgO (B–X 緑色系), AlO (B–X 青緑系), TiO (A–X γ 系, B–X γ′ 系, C–X α 系), FeO (橙色系, 包絡線近似) |
+| database_debris — 中性原子 (20) | LiI, NaI, MgI, AlI, SiI, KI, CaI, TiI, VI, CrI, MnI, FeI, CoI, NiI, CuI, ZnI, SrI, AgI, SnI, BaI |
+| database_debris — イオン (16) | LiII, NaII, MgII, AlII, SiII, KII, CaII, TiII, VII, CrII, MnII, FeII, CoII, NiII, SrII, BaII |
+| database_debris — 二原子分子 (9) | MgO (B–X 緑色系), AlO (B–X 青緑系), TiO (A–X γ 系, B–X γ′ 系, C–X α 系), FeO (橙色系, 包絡線近似), CaO (A–X 近赤外系, B–X, C–X, 橙色アーク帯の包絡線近似), SiO (A–X 紫外系), CrO (B–X 橙赤色系, 包絡線近似), AlH (A–X 424–435 nm), AlCl (A–X 紫外系) |
+
+原子・イオンのうち LiI, NaI, AlI, KI, CuI, MgII, SiII, CaII は記憶値による少数の主要線 (4–11 本) のファイルです。その他の 28 種は NIST ASD の全準位 (第一電離限界以下) と 200–1100 nm の許容線 (A 値あり、空気波長) から作成し、NIST に A 値の無い遷移は Kurucz の log gf で補っています (`tools/make_nist_atomic_dat.py`; TiI は 300–1000 nm)。線数の例: FeI 3425, FeII 4995, VI 3755, CrII 3474, TiII 1693, CoI 1378, CrI 1309。NaII, KII, LiII は可視域に実用的な線を持たず、主に Saha 電離平衡 (6.4 節) の相手として収録しています。
 
 <a id="sec-14-1"></a>
 
 ### 14.1 追加分子の近似
 
 - **AlO B²Σ⁺–X²Σ⁺**: ²Σ 状態を S = 0 の一重項として記述 (スピン分裂 ~0.007 cm⁻¹ は格子より十分小さい)。全状態に同じ因子がかかるため分配関数で相殺されます。
-- **TiO**: X³Δ / A³Φ / C³Δ を ³Π (結合ケース 23) で近似。縮退度 6 は実際の値と一致しますが、γ 系の 3 本のバンド頭 (7054/7089/7126 Å) は 1 本 (~7125 Å) にまとまります。
+- **TiO**: X³Δ / A³Φ / C³Δ を ³Π (結合ケース 23) で近似。縮退度 6 は実際の値と一致しますが、γ 系の 3 本のバンド頭 (7054/7089/7126 Å) は中央のサブバンド位置 ((0,0) 原点 7094 Å) の 1 本にまとまります。
 - **FeO 橙色系**: 多状態が重なる複雑な系を、Te = 17050 cm⁻¹ の 1 状態 (S = 2, Λ = 0) で包絡線として表現。回転線の解析には使えません。
+- **CaO**: A¹Σ⁺–X¹Σ⁺, B¹Π–X¹Σ⁺, C¹Σ⁺–X¹Σ⁺ は実際の対称性のまま記述 (定数は Huber–Herzberg)。B 状態は ΔG(1/2) のみ既知のため we, wexe は仮定値。橙色アーク帯 (600–635 nm) は未解析の多状態系のため、A′¹Π の 16200 cm⁻¹ 上に仮想的な ¹Σ 状態を置いた包絡線です。A_total は A–X と橙色帯が実測寿命 (149 ns, 27.8 ns; Plane & Nien 1991)、B–X と C–X は仮定値 (1e7, 3e7 s⁻¹) です。緑色帯は未収録。
+- **CrO B⁵Π–X⁵Π**: S = 2, Λ = 1 の一重項型回転構造 (縮退度 10 は実際の値と一致) で、5 つのスピン成分をまとめた包絡線。A_total = 5e6 s⁻¹ は仮定値です (絶対強度は信頼できません)。
+- **SiO A¹Π–X¹Σ⁺, AlH A¹Π–X¹Σ⁺, AlCl A¹Π–X¹Σ⁺**: 実際の対称性のまま記述。SiO の A_total は理論寿命 28.5 ns (ExoMol) によります (唯一の実測値 9.6 ns を採ると 3 倍)。AlH の A 状態は v = 0, 1 のみで、回転前期解離に合わせて N ≤ 20 / 7 に制限。AlCl の定数は Al³⁵Cl のものです。
 - **Franck–Condon 因子**: 各状態の分子定数 (we, wexe, Be) と換算質量から Morse ポテンシャルを作り、振動波動関数の重なりを数値計算 (2026-10-23 改訂)。
 
 **表 15.** Morse 振動子による Franck–Condon 因子 (A_total は v′=0 の全遷移率 1/τ₀)
@@ -648,15 +690,23 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 |---|---|---|---|---|---|
 | MgO B–X | 1.732 / 1.743 | 0.985 | 0.015 | 0.015 | 2.0e7 |
 | AlO B–X | 1.667 / 1.618 | 0.730 | 0.238 | 0.225 | 1.0e7 |
-| TiO γ (A–X) | 1.665 / 1.620 | 0.721 | 0.236 | 0.235 | 5.0e6 |
-| TiO α (C–X) | 1.694 / 1.620 | 0.407 | 0.378 | 0.348 | 1.6e7 |
+| TiO γ (A–X) | 1.665 / 1.620 | 0.721 | 0.236 | 0.235 | 9.7e6 |
+| TiO α (C–X) | 1.694 / 1.620 | 0.407 | 0.378 | 0.348 | 3.1e7 |
 | FeO orange | 1.630 / 1.620 | 0.984 | 0.016 | 0.015 | 3.0e6 |
+| CaO A–X | 1.907 / 1.822 | 0.434 | 0.411 | 0.326 | 6.7e6 |
+| CaO B–X | 1.950 / 1.822 | 0.172 | 0.331 | 0.284 | 1.0e7 (仮定) |
+| CaO C–X | 1.989 / 1.822 | 0.048 | 0.170 | 0.124 | 3.0e7 (仮定) |
+| CaO orange | 2.067 / 2.093 | 0.941 | 0.055 | 0.058 | 3.6e7 |
+| SiO A–X | 1.621 / 1.510 | 0.142 | 0.277 | 0.261 | 3.5e7 |
+| CrO B–X | 1.703 / 1.615 | 0.302 | 0.401 | 0.311 | 5.0e6 (仮定) |
+| AlH A–X | 1.648 / 1.648 | 0.958 | 0.031 | 0.041 | 1.5e7 |
+| AlCl A–X | 2.067 / 2.130 | 0.684 | 0.225 | 0.294 | 1.56e8 |
 
 <a id="sec-14-2"></a>
 
 ### 14.2 新しい化学種の追加
 
-- 原子: VALD 取込み (第 10 章) または `tools/make_atomic_dat.py` (NIST の準位・A 値を記述)。
+- 原子: VALD 取込み (第 10 章)、`tools/make_nist_atomic_dat.py` (NIST ASD と Kurucz から自動生成。SPECIES 表に 1 行追加)、または `tools/make_atomic_dat.py` (準位・A 値を手で記述)。
 - 二原子分子: `tools/make_diatomic_dat.py` に電子状態の分子定数とバンド系を追加。FCF は自動計算されます。
 - 生成後は `tools/test_debris.py` で読込み・ピーク位置を確認してください。形式の詳細は docs/DATA_FORMATS_ja.md と notes/PORT_NOTES_database.md を参照。
 
@@ -665,10 +715,10 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 ## 15. 制約と注意事項
 
 - 追加したデブリ原子の .dat には束縛-自由 / 自由-束縛のブロックが無く、これらの種の再結合連続光は含まれません (自由-自由は有効電荷 EffC2 = 0.01 の概算)。
-- 一部の A 値は log gf からの換算で ±10–30 % の不確かさがあります。精密な解析には VALD 取込みでの置換を推奨します。
-- 内部分配関数の Qe 表は 1500–7000 K 向けです。約 8000 K を超えると準位の打ち切りにより不完全になります。Tex ≥ 5000 K では Qe 表参照に切り替わります。d 殻の開いた原子では 8000 K 未満でも影響があります (NIST 比 U_dat/U_NIST: Cr I 0.73 / 0.36, Mn I 0.94 / 0.52, Fe I 0.98 / 0.80, Ni I 0.99 / 0.90 — 5000 / 9000 K)。
+- 記憶値から作成した種 (LiI, NaI, AlI, KI, CuI, MgII, SiII, CaII) の A 値には ±10–30 % の不確かさがあります。NIST + Kurucz から作成した種でも、Kurucz の log gf による線は計算値で、弱い線ほど不確かです。電離限界より上の準位とそこからの線は収録していません。
+- 記憶値から作成した種の Qe 表は 1500–7000 K 向けで、約 8000 K を超えると準位の打ち切りにより不完全になります。NIST の全準位から作成した種の分配関数は NIST の値と一致します (例: Fe I 27.79 / 50.40, Cr I 10.39 / 25.83 — 5000 / 9000 K)。Tex ≥ 5000 K では Qe 表参照に切り替わります。
 - イオン密度は入力値のまま使われ、電離平衡は自動では適用されません。必要なら Saha 電離平衡 (6.4 節) を使ってください。
-- TiO・FeO は第 14.1 節の近似を含みます。FCF の Morse 近似は低い v で数 % の精度、高い v′ ではより大きな誤差を持ちえます。
+- TiO・FeO・CaO・CrO は第 14.1 節の近似を含みます。FCF の Morse 近似は低い v で数 % の精度、高い v′ ではより大きな誤差を持ちえます。
 - 三原子分子 (CO₂ など) の経路は未実装です。
 - Python 版は C 版の 1D/2D 輻射輸送ツール (Ray-integ, 1D-slab, S-cap, 3D-integ) を含みません (一様スラブのみ)。
 
@@ -697,8 +747,9 @@ Fujita and Abe (1997) は原典 SPRADIAN の理論論文、Fujita and Abe (2003)
 - JAXA 航空技術部門「大気突入機の熱空力評価システムの高度化」(SPRADIAN): https://www.aero.jaxa.jp/research/basic/aerodynamic/aerothermodynamic/
 - SPRADIAN-1.5 ユーザーズマニュアル (第 2.3 版), ISAS/JAXA
 - S. Abe, N. Ebizuka, H. Yano, J. Watanabe and J. Borovička, Detection of the N₂⁺ First Negative System in a Bright Leonid Fireball, ApJ 618, L141 (2005)
-- Huber, K. P. & Herzberg, G., Constants of Diatomic Molecules (分子定数)
-- NIST Atomic Spectra Database; VALD3 (https://www.astro.uu.se/valdwiki/)
+- J. Borovička, A fireball spectrum analysis, A&A 279, 627 (1993) — 中性原子からの電子密度の推定 (6.5 節)
+- Huber, K. P. & Herzberg, G., Constants of Diatomic Molecules (分子定数; NIST Chemistry WebBook)
+- NIST Atomic Spectra Database; R. L. Kurucz の原子線リスト (http://kurucz.harvard.edu/atoms/); VALD3 (https://www.astro.uu.se/valdwiki/)
 
 <a id="sec-16-3"></a>
 
