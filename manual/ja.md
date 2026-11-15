@@ -4,7 +4,7 @@
 
 <p align="center"><b>METEOr RADiation spectra</b><br>仕様書・ユーザーマニュアル</p>
 
-<p align="center">SPRADIAN-1.8 (JAXA) の Python 版 — バージョン 1.0<br>原典: SPRADIAN-1.8 — 藤田和央・安部隆士 (ISAS/JAXA)<br>追加原子・分子データベースおよび GUI: 阿部新助 (Shinsuke Abe)<br>文書日付: 2026-11-16</p>
+<p align="center">SPRADIAN-1.8 (JAXA) の Python 版 — バージョン 2.0<br>原典: SPRADIAN-1.8 — 藤田和央・安部隆士 (ISAS/JAXA)<br>追加原子・分子データベースおよび GUI: 阿部新助 (Shinsuke Abe)<br>文書日付: 2026-11-16</p>
 
 > **使用時は Fujita & Abe (1997)、Fujita & Abe (2003) および Abe et al. (2026) の引用が必須です (1.4 節)。**
 
@@ -39,6 +39,7 @@
 - [9. 観測スペクトルのフィット](#sec-9)
   - [9.1 設定項目](#sec-9-1)
   - [9.2 探索方法](#sec-9-2)
+  - [9.3 解析例: デブリ再突入スペクトルの AlO フィット](#sec-9-3)
 - [10. VALD 線リストの取込み](#sec-10)
 - [11. 制御ファイル (.ctl) の読込み](#sec-11)
 - [12. Python API](#sec-12)
@@ -62,7 +63,7 @@
 
 **METEORAD** (METEOr RADiation spectra) は、高温プラズマの発光・吸収スペクトルを線ごと (line-by-line) に計算するソフトウェアです。JAXA の輻射解析コード **SPRADIAN-1.8** (Structured Package for Radiation Analysis; 藤田和央・安部隆士, ISAS/JAXA) を Python に移植したもので、物理モデル・データベース形式・制御ファイル形式は C 版を踏襲しています。
 
-本ソフトウェアは、JAXA の SPRADIAN に阿部新助 (Shinsuke Abe) が、大気圏突入や流星発光に重要な他の原子・分子を追加収録し、GUI 化したソフトウェアです。
+本ソフトウェアは、JAXA の SPRADIAN に阿部新助 (Shinsuke Abe) が、大気圏突入や流星発光に重要な他の原子・分子を追加収録し、GUI 化して、温度スイープ、観測スペクトルのフィット、Python API などを加えたソフトウェアです。
 
 Python 化・追加原子/分子・GUI・温度スイープ・観測スペクトルのフィット・Python API などの METEORAD としての拡張は Abe et al. (2026) に記述されています (1.4 節)。
 
@@ -509,6 +510,34 @@ File → Fit observed spectrum... で開くフィット ウィンドウは、観
 
 > Observed units が Arbitrary の場合、数密度は比のみが意味を持ちます (表示値は参照密度に対する相対値)。絶対密度を求めるには絶対較正した観測と Absolute を使ってください。
 
+<a id="sec-9-3"></a>
+
+### 9.3 解析例: デブリ再突入スペクトルの AlO フィット
+
+デブリ解析の例として、長征 3B/E ロケット第 2 段の再突入 (2024 年 12 月 20 日、石垣島南東) の酸化期 (高度 69.7–65.1 km) の合算スペクトルに AlO B–X 帯をフィットします。データは Abe, Watanabe, Hanayama & Arima (2026, Earth, Planets and Space 投稿中; 16.2 節) の図 3b のもので、マニュアルと同じ場所の `examples/LM3B_oxidation_phase.csv` に収録しています (420–645 nm、0.5 nm 間隔、放射強度 W sr⁻¹ nm⁻¹、空気波長、装置幅 FWHM 2.7 nm)。この位相では AlO B–X の Δv = +1, 0, −1, −2 のシーケンス (バンド頭 464.8, 484.2, 507.9, 533.7 nm) が連続光の上に現れます。
+
+1. メインウィンドウで **AlO** だけをチェックし (Meteor グループ)、波長範囲 4500–5700 Å、Interval 0.5 Å、Line shape **Rectangular** を設定します。バンドの回転線は格子間隔よりはるかに細いので、フラックスを保存する矩形を使います。
+2. File → Fit observed spectrum... を開き、**Load...** で CSV を読み込みます。λ unit を **nm**、value column を 2、fit window を 4500–5700 Å にします。
+3. Temperatures を **Multi-temperature** にし、**Trot** を 2000–8000 K (1000 K 刻み)、**Tvib** を 2000–7000 K (500 K 刻み) で振ります。他の温度は 4000 K に固定します (バンドの形には影響しません)。
+4. Resolution FWHM を **Fixed 27 Å**、Model を Emission、Observed units を Arbitrary、Baseline を **Linear**、Refine をオンにして **Run search** を押します (77 回の計算、約 40 秒)。
+
+<p align="center"><img src="images/18_alo_fit_result.png" width="640" alt="長征 3B/E 第 2 段の酸化期スペクトルへの AlO B–X フィット (観測: 黒、モデル: 赤、AlO 成分: 青)"></p>
+
+<p align="center"><b>図 17.</b> 長征 3B/E 第 2 段の酸化期スペクトルへの AlO B–X フィット (観測: 黒、モデル: 赤、AlO 成分: 青)</p>
+
+最良解は Tvib = 4350 K、Trot = 2440 K (相対 RMS 0.126) です。Trot を固定してフィットし直すと下表のようになり、この分解能 (2.7 nm) では回転温度はほとんど決まらず、振動温度は Trot の仮定に応じて約 3600–4500 K の範囲に入ります。論文の値は Tvib = 4000 K (系統誤差の変種で 3500–4000 K)、Trot は決定不能で、これと整合します。
+
+**表 11.** AlO フィットの結果 (4500–5700 Å、分解能 27 Å、線形ベースライン)
+
+| Trot | Tvib (フィット) | 相対 RMS |
+|---|---|---|
+| 2440 K (同時にフィット) | 4350 K | 0.126 |
+| 2000 K (固定) | 4500 K | 0.128 |
+| 4000 K (固定) | 3960 K | 0.140 |
+| 7000 K (固定) | 3580 K | 0.183 |
+
+> この例は GUI の機能だけで行う簡略版で、論文の解析とは異なります。論文は 420–645 nm 全体に灰色体 (色温度 3175 K)・AlO・原子線を重み付きで同時にフィットしていますが、ここでは連続光を線形ベースラインで代用し、範囲を AlO のシーケンスに限っています。Δv = −1 のシーケンス (510–520 nm) でモデルが観測より低くなります。論文は Cu I 線 (510.6, 515.3, 521.8 nm) と C₂ Swan 帯 (516.5 nm) がこのシーケンスに重なることを指摘していますが、どちらも検出とはしていません。Observed units が Arbitrary なので AlO の密度は求まりません。モデルのバンド波長は真空波長、観測は空気波長ですが、その差 (約 1.4 Å) は分解能 27 Å に対して無視できます。AlO は ²Σ 状態を一重項として記述しています (14.1 節)。
+
 <a id="sec-10"></a>
 
 ## 10. VALD 線リストの取込み
@@ -535,7 +564,7 @@ Ak [m² Å]   = A_ul · λ_Å⁴ · 1e-30 / (8π c g_l)
 
 File → Load control file (.ctl)... で SPRADIAN-1.8 のジョブ制御ファイルを読み込み、波長範囲・格子間隔・線形状・圧力 FWHM・温度・化学種の密度をフォームに反映します。フォームで表現できない項目は、読込み後のダイアログで通知されます。
 
-**表 11.** .ctl 読込みの制約
+**表 12.** .ctl 読込みの制約
 
 | 制御ファイルの指定 | GUI での扱い |
 |---|---|
@@ -595,7 +624,7 @@ r = electron_density_from_neutrals({"FeI": 1.0e19, "MgI": 1.8e19, "NaI": 2.8e16}
 # r.totals["Fe"], r.skipped, r.warnings
 ```
 
-**表 12.** 計算コアのモジュール
+**表 13.** 計算コアのモジュール
 
 | モジュール | 内容 (C 版の対応) |
 |---|---|
@@ -618,7 +647,7 @@ r = electron_density_from_neutrals({"FeI": 1.0e19, "MgI": 1.8e19, "NaI": 2.8e16}
 
 ### 13.1 単位系と規約
 
-**表 13.** 単位
+**表 14.** 単位
 
 | 量 | 単位 |
 |---|---|
@@ -661,7 +690,7 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 
 ## 14. データベース
 
-**表 14.** 収録化学種
+**表 15.** 収録化学種
 
 | グループ | 化学種 |
 |---|---|
@@ -684,7 +713,7 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 - **SiO A¹Π–X¹Σ⁺, AlH A¹Π–X¹Σ⁺, AlCl A¹Π–X¹Σ⁺**: 実際の対称性のまま記述。SiO の A_total は理論寿命 28.5 ns (ExoMol) によります (唯一の実測値 9.6 ns を採ると 3 倍)。AlH の A 状態は v = 0, 1 のみで、回転前期解離に合わせて N ≤ 20 / 7 に制限。AlCl の定数は Al³⁵Cl のものです。
 - **Franck–Condon 因子**: 各状態の分子定数 (we, wexe, Be) と換算質量から Morse ポテンシャルを作り、振動波動関数の重なりを数値計算 (2026-10-23 改訂)。
 
-**表 15.** Morse 振動子による Franck–Condon 因子 (A_total は v′=0 の全遷移率 1/τ₀)
+**表 16.** Morse 振動子による Franck–Condon 因子 (A_total は v′=0 の全遷移率 1/τ₀)
 
 | バンド系 | rₑ′ / rₑ″ (Å) | q00 | q01 | q10 | A_total (s⁻¹) |
 |---|---|---|---|---|---|
@@ -726,7 +755,7 @@ Resolution FWHM は単位面積のガウス関数による畳み込みで、積�
 
 ## 16. クレジットと参考文献
 
-本ソフトウェアは、JAXA の SPRADIAN に阿部新助 (Shinsuke Abe) が、大気圏突入や流星発光に重要な他の原子・分子を追加収録し、GUI 化したソフトウェアです。原典 SPRADIAN-1.8 の著作者は藤田和央・安部隆士 (ISAS/JAXA) です。
+本ソフトウェアは、JAXA の SPRADIAN に阿部新助 (Shinsuke Abe) が、大気圏突入や流星発光に重要な他の原子・分子を追加収録し、GUI 化して、温度スイープ、観測スペクトルのフィット、Python API などを加えたソフトウェアです。原典 SPRADIAN-1.8 の著作者は藤田和央・安部隆士 (ISAS/JAXA) です。
 
 <a id="sec-16-1"></a>
 
@@ -748,6 +777,7 @@ Fujita and Abe (1997) は原典 SPRADIAN の理論論文、Fujita and Abe (2003)
 - SPRADIAN-1.5 ユーザーズマニュアル (第 2.3 版), ISAS/JAXA
 - S. Abe, N. Ebizuka, H. Yano, J. Watanabe and J. Borovička, Detection of the N₂⁺ First Negative System in a Bright Leonid Fireball, ApJ 618, L141 (2005)
 - J. Borovička, A fireball spectrum analysis, A&A 279, 627 (1993) — 中性原子からの電子密度の推定 (6.5 節)
+- S. Abe, K. Watanabe, H. Hanayama and N. Arima, Spectroscopic evidence of aluminium oxidation before the break-up of a re-entering Long March 3B upper stage, Earth, Planets and Space, submitted (2026); データ: Zenodo, doi:10.5281/zenodo.24127499 — AlO フィットの解析例 (9.3 節)
 - Huber, K. P. & Herzberg, G., Constants of Diatomic Molecules (分子定数; NIST Chemistry WebBook)
 - NIST Atomic Spectra Database; R. L. Kurucz の原子線リスト (http://kurucz.harvard.edu/atoms/); VALD3 (https://www.astro.uu.se/valdwiki/)
 

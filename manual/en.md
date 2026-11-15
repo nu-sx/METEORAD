@@ -4,7 +4,7 @@
 
 <p align="center"><b>METEOr RADiation spectra</b><br>Specification and User Manual</p>
 
-<p align="center">Python edition of SPRADIAN-1.8 (JAXA) — Version 1.0<br>Original code: SPRADIAN-1.8 — K. Fujita and T. Abe (ISAS/JAXA)<br>Additional atoms/molecules and GUI: Shinsuke Abe (阿部新助)<br>Document date: 2026-11-16</p>
+<p align="center">Python edition of SPRADIAN-1.8 (JAXA) — Version 2.0<br>Original code: SPRADIAN-1.8 — K. Fujita and T. Abe (ISAS/JAXA)<br>Additional atoms/molecules and GUI: Shinsuke Abe (阿部新助)<br>Document date: 2026-11-16</p>
 
 > **Use of METEORAD requires citing Fujita & Abe (1997), Fujita & Abe (2003) and Abe et al. (2026) (Section 1.4).**
 
@@ -39,6 +39,7 @@
 - [9. Fitting an observed spectrum](#sec-9)
   - [9.1 Settings](#sec-9-1)
   - [9.2 Search method](#sec-9-2)
+  - [9.3 Worked example: AlO fit of a debris re-entry spectrum](#sec-9-3)
 - [10. Importing VALD line lists](#sec-10)
 - [11. Loading control files (.ctl)](#sec-11)
 - [12. Python API](#sec-12)
@@ -509,6 +510,34 @@ Selecting a row shows that solution. **Apply to main window** copies its tempera
 
 > With Observed units = Arbitrary only density ratios are meaningful (shown values are relative). Use an absolutely calibrated observation with Absolute to obtain absolute densities.
 
+<a id="sec-9-3"></a>
+
+### 9.3 Worked example: AlO fit of a debris re-entry spectrum
+
+As a debris example, the AlO B–X bands are fitted to the co-added spectrum of the oxidation phase (69.7–65.1 km) of the re-entry of a Long March 3B/E second stage (20 December 2024, south-east of Ishigaki Island, Japan). The data are those of Figure 3b of Abe, Watanabe, Hanayama & Arima (2026, submitted to Earth, Planets and Space; Section 16.2) and are provided next to the manual as `examples/LM3B_oxidation_phase.csv` (420–645 nm, 0.5 nm step, radiant intensity in W sr⁻¹ nm⁻¹, air wavelengths, instrumental FWHM 2.7 nm). In this phase the AlO B–X sequences Δv = +1, 0, −1, −2 (heads at 464.8, 484.2, 507.9, 533.7 nm) appear on a continuum.
+
+1. In the main window check **AlO** only (Meteor group) and set the wavelength range 4500–5700 Å, Interval 0.5 Å and Line shape **Rectangular**. The rotational lines of the band are far narrower than the grid step, so the flux-conserving rectangular shape is used.
+2. Open File → Fit observed spectrum... and **Load...** the CSV. Set λ unit to **nm**, value column to 2 and the fit window to 4500–5700 Å.
+3. Set Temperatures to **Multi-temperature** and sweep **Trot** from 2000 to 8000 K (step 1000 K) and **Tvib** from 2000 to 7000 K (step 500 K). The other temperatures stay fixed at 4000 K (they do not change the band shape).
+4. Set Resolution FWHM to **Fixed 27 Å**, Model to Emission, Observed units to Arbitrary, Baseline to **Linear**, keep Refine on and press **Run search** (77 runs, about 40 s).
+
+<p align="center"><img src="images/18_alo_fit_result.png" width="640" alt="AlO B–X fit of the oxidation-phase spectrum of the Long March 3B/E second stage (observed: black, model: red, AlO component: blue)"></p>
+
+<p align="center"><b>Figure 17.</b> AlO B–X fit of the oxidation-phase spectrum of the Long March 3B/E second stage (observed: black, model: red, AlO component: blue)</p>
+
+The best solution is Tvib = 4350 K, Trot = 2440 K (relative RMS 0.126). Refitting with Trot fixed gives the table below: at this resolution (2.7 nm) the rotational temperature is hardly constrained, and the vibrational temperature lies between about 3600 and 4500 K depending on the assumed Trot. This agrees with the paper's Tvib = 4000 K (3500–4000 K with the systematic variants) and unconstrained Trot.
+
+**Table 11.** Results of the AlO fit (4500–5700 Å, 27 Å resolution, linear baseline)
+
+| Trot | Tvib (fitted) | Relative RMS |
+|---|---|---|
+| 2440 K (fitted together) | 4350 K | 0.126 |
+| 2000 K (fixed) | 4500 K | 0.128 |
+| 4000 K (fixed) | 3960 K | 0.140 |
+| 7000 K (fixed) | 3580 K | 0.183 |
+
+> This example is a simplified version that uses only the GUI and differs from the analysis of the paper, which fits a grey body (colour temperature 3175 K), AlO and atomic lines together over 420–645 nm with weights; here a linear baseline stands in for the continuum and the range is limited to the AlO sequences. The model falls below the observation in the Δv = −1 sequence (510–520 nm). The paper notes that the Cu I lines (510.6, 515.3, 521.8 nm) and the C₂ Swan band (516.5 nm) overlap this sequence, but regards neither as detected. With Observed units = Arbitrary the AlO density is not determined. The model band wavelengths are in vacuum and the observation in air; the difference (about 1.4 Å) is negligible against the 27 Å resolution. The ²Σ states of AlO are written as singlets (Section 14.1).
+
 <a id="sec-10"></a>
 
 ## 10. Importing VALD line lists
@@ -535,7 +564,7 @@ Ak [m² Å]   = A_ul · λ_Å⁴ · 1e-30 / (8π c g_l)
 
 File → Load control file (.ctl)... reads a SPRADIAN-1.8 job file and applies wavelength range, interval, line shape, pressure FWHM, temperatures and species densities to the form. Items the form cannot represent are listed in a dialog after loading.
 
-**Table 11.** Limitations of .ctl loading
+**Table 12.** Limitations of .ctl loading
 
 | Control-file setting | GUI handling |
 |---|---|
@@ -595,7 +624,7 @@ r = electron_density_from_neutrals({"FeI": 1.0e19, "MgI": 1.8e19, "NaI": 2.8e16}
 # r.totals["Fe"], r.skipped, r.warnings
 ```
 
-**Table 12.** Core modules
+**Table 13.** Core modules
 
 | Module | Content (C counterpart) |
 |---|---|
@@ -618,7 +647,7 @@ r = electron_density_from_neutrals({"FeI": 1.0e19, "MgI": 1.8e19, "NaI": 2.8e16}
 
 ### 13.1 Units and conventions
 
-**Table 13.** Units
+**Table 14.** Units
 
 | Quantity | Unit |
 |---|---|
@@ -661,7 +690,7 @@ Resolution FWHM convolves with a unit-area Gaussian, conserving integrated flux.
 
 ## 14. Databases
 
-**Table 14.** Species in the databases
+**Table 15.** Species in the databases
 
 | Group | Species |
 |---|---|
@@ -684,7 +713,7 @@ Among the atoms and ions, LiI, NaI, AlI, KI, CuI, MgII, SiII and CaII are hand-m
 - **SiO A¹Π–X¹Σ⁺, AlH A¹Π–X¹Σ⁺, AlCl A¹Π–X¹Σ⁺**: written with their true symmetries. The SiO A_total follows the theoretical lifetime 28.5 ns (ExoMol); the only measurement, 9.6 ns, would give three times more. The AlH A state has v = 0, 1 only, limited to N ≤ 20 / 7 to mimic rotational predissociation. The AlCl constants are those of Al³⁵Cl.
 - **Franck–Condon factors**: Morse potentials built from (we, wexe, Be) and the reduced mass; vibrational overlaps computed numerically (revised 2026-10-23).
 
-**Table 15.** Morse-oscillator Franck–Condon factors (A_total is the v′=0 total rate 1/τ₀)
+**Table 16.** Morse-oscillator Franck–Condon factors (A_total is the v′=0 total rate 1/τ₀)
 
 | Band system | rₑ′ / rₑ″ (Å) | q00 | q01 | q10 | A_total (s⁻¹) |
 |---|---|---|---|---|---|
@@ -748,6 +777,7 @@ Fujita and Abe (1997) is the original SPRADIAN theory paper and Fujita and Abe (
 - SPRADIAN-1.5 User's Manual (2.3rd ed., Japanese), ISAS/JAXA
 - S. Abe, N. Ebizuka, H. Yano, J. Watanabe and J. Borovička, Detection of the N₂⁺ First Negative System in a Bright Leonid Fireball, ApJ 618, L141 (2005)
 - J. Borovička, A fireball spectrum analysis, A&A 279, 627 (1993) — electron density from the neutral atoms (Section 6.5)
+- S. Abe, K. Watanabe, H. Hanayama and N. Arima, Spectroscopic evidence of aluminium oxidation before the break-up of a re-entering Long March 3B upper stage, Earth, Planets and Space, submitted (2026); data: Zenodo, doi:10.5281/zenodo.24127499 — AlO fitting example (Section 9.3)
 - Huber, K. P. and Herzberg, G., Constants of Diatomic Molecules (NIST Chemistry WebBook)
 - NIST Atomic Spectra Database; atomic line lists of R. L. Kurucz (http://kurucz.harvard.edu/atoms/); VALD3 (https://www.astro.uu.se/valdwiki/)
 
