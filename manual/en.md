@@ -88,7 +88,7 @@ The METEORAD extensions — Python port, additional atoms/molecules, GUI, temper
 - Saha ionization balance (splits element totals over neutral/ion stages; fixed Ne or self-consistent from charge neutrality)
 - Electron density from the neutral-atom densities and the temperature (method of Borovička 1993)
 - Batch temperature sweeps exported to CSV
-- Fitting of observed spectra (grid search + linear least squares + Nelder–Mead refinement)
+- Fitting of observed spectra (grid search + linear least squares + Nelder–Mead refinement; constant, linear or blackbody background)
 - Import of VALD line lists; reading SPRADIAN-1.8 control files (.ctl)
 - Python API (run_spectrum) for calculations without the GUI
 
@@ -484,7 +484,8 @@ File → Fit observed spectrum... opens the fit window. It loads an observed spe
 | Broadening | Resolution FWHM | None / Fixed / Range (searched) |
 | Model | Model | Emission (optically thin, fast) / Slab intensity (self-absorption, full run per point) |
 | Model | Observed units | Arbitrary: a scale factor is fitted (only density ratios determined) / Absolute: observation in model units |
-| Model | Baseline | None / Constant / Linear (absorbs stray light / unmodelled continuum) |
+| Model | Baseline | None / Constant / Linear (absorbs stray light / unmodelled continuum) / Blackbody (grey body): a Planck function B_λ(T_bb) fitted as the background |
+| Model | Blackbody T [K] | Search range of the background temperature T_bb (start / end / step); start = end fixes it |
 | Model | Refine the best point | Continuous Nelder–Mead refinement from the best grid point |
 
 <a id="sec-9-2"></a>
@@ -493,6 +494,7 @@ File → Fit observed spectrum... opens the fit window. It loads an observed spe
 
 - **Emission model**: one full run per (temperature set, pressure FWHM) at the reference densities; each species' line emission is a basis vector scaled by its density. The continuum (total − lines) is one more basis vector with a non-negative amplitude.
 - **Slab-intensity model**: one full run per (temperature set, pressure FWHM, density-grid combination).
+- **Blackbody background**: a Planck function B_λ(T_bb) (per unit wavelength) is one more basis vector; its amplitude (≥ 0) is solved by linear least squares and its temperature T_bb is searched on the given grid (and refined continuously when Refine is on). It adds no full spectrum runs. The amplitude is reported as the maximum of the blackbody within the fit window (observed units). In the slab-intensity model it is added as it is, without attenuation by the slab. It cannot be combined with Constant / Linear.
 - Figure of merit: sum of squared residuals over the fit window, reported as relative RMS = √(Σr² / Σobs²).
 - Limits: 2000 full spectrum runs, 500000 linear solves. The best 50 solutions are kept with their model arrays.
 
@@ -536,7 +538,13 @@ The best solution is Tvib = 4350 K, Trot = 2440 K (relative RMS 0.126). Refittin
 | 4000 K (fixed) | 3960 K | 0.140 |
 | 7000 K (fixed) | 3580 K | 0.183 |
 
-> This example is a simplified version that uses only the GUI and differs from the analysis of the paper, which fits a grey body (colour temperature 3175 K), AlO and atomic lines together over 420–645 nm with weights; here a linear baseline stands in for the continuum and the range is limited to the AlO sequences. The model falls below the observation in the Δv = −1 sequence (510–520 nm). The paper notes that the Cu I lines (510.6, 515.3, 521.8 nm) and the C₂ Swan band (516.5 nm) overlap this sequence, but regards neither as detected. With Observed units = Arbitrary the AlO density is not determined. The model band wavelengths are in vacuum and the observation in air; the difference (about 1.4 Å) is negligible against the 27 Å resolution. The ²Σ states of AlO are written as singlets (Section 14.1).
+**With a blackbody background**: the continuum can also be fitted as a blackbody. Check **AlO** and **NaI** in the main window and set the wavelength range to 4300–6400 Å; in the fit window set the fit window to 4300–6400 Å, Baseline to **Blackbody (grey body)** and Blackbody T to 2000–4500 K (step 250 K), keep the other settings as above and press Run search (77 runs, 847 grid points, about 70 s). The result is a blackbody temperature T_bb = 3500 K with Tvib = 4120 K and Trot = 2860 K (relative RMS 0.178). The paper's continuum colour temperature is 3175 K (3125–3400 K with the systematic variants), somewhat lower; the paper fits with weights and includes atomic lines such as Ca I, unlike this unweighted fit with AlO and Na only. Limiting the fit window to the AlO sequences (4500–5700 Å) gives T_bb = 2850 K: over a narrow range the blackbody temperature is poorly constrained.
+
+<p align="center"><img src="images/19_alo_fit_blackbody.png" width="640" alt="The same spectrum fitted with AlO + Na I + a blackbody background (dashed: blackbody, 3501 K)"></p>
+
+<p align="center"><b>Figure 18.</b> The same spectrum fitted with AlO + Na I + a blackbody background (dashed: blackbody, 3501 K)</p>
+
+> These examples are simplified versions that use only the GUI and differ from the analysis of the paper, which fits a grey body (colour temperature 3175 K), AlO and atomic lines together over 420–645 nm with weights; in the first example a linear baseline stands in for the continuum and the range is limited to the AlO sequences. The model falls below the observation in the Δv = −1 sequence (510–520 nm). The paper notes that the Cu I lines (510.6, 515.3, 521.8 nm) and the C₂ Swan band (516.5 nm) overlap this sequence, but regards neither as detected. With Observed units = Arbitrary the AlO density is not determined. The model band wavelengths are in vacuum and the observation in air; the difference (about 1.4 Å) is negligible against the 27 Å resolution. The ²Σ states of AlO are written as singlets (Section 14.1).
 
 <a id="sec-10"></a>
 
